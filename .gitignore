@@ -1,0 +1,19 @@
+# Build and install
+dist/
+*.egg-info/
+.eggs/
+.cache/
+.venv/
+venv/
+env/
+.env
+
+# CI / tools
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Scanner output (local test runs)
+out/
+out-cdk/

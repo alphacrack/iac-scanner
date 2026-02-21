@@ -1,0 +1,12 @@
+# Ruff config for iac-scanner
+target-version = "py310"
+line-length = 120
+src = ["src", "tests"]
+exclude = ["samples", "out", "out-cdk", "dist", ".git"]
+
+[lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[format]
+quote-style = "double"
