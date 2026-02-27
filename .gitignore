@@ -8,6 +8,12 @@ venv/
 env/
 .env
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+
 # CI / tools
 .pytest_cache/
 .ruff_cache/
