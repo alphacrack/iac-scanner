@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bump version in pyproject.toml and add a new section to CHANGELOG.md. Usage: bump_version.py [major|minor|patch]"""
+
 import re
 import sys
 from datetime import date
@@ -44,8 +45,7 @@ def add_changelog_section(version: str) -> None:
         CHANGELOG.write_text(
             "# Changelog\n\n"
             "All notable changes to this project will be documented in this file.\n\n"
-            "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).\n\n"
-            + section
+            "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).\n\n" + section
         )
         return
     text = CHANGELOG.read_text()
