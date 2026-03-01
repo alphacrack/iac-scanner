@@ -35,14 +35,21 @@ pip install -e ".[dev]"
 
 **Useful commands:**
 
-| Command        | Description                    |
-|----------------|--------------------------------|
-| `make test`    | Run pytest                     |
-| `make lint`    | Ruff check                     |
-| `make fmt`     | Ruff format                    |
-| `make check`   | Lint then test                 |
-| `make build`   | Build sdist/wheel into `dist/` |
-| `make clean`   | Remove caches and build artifacts |
+| Command            | Description                              |
+|--------------------|------------------------------------------|
+| `make test`        | Run pytest                               |
+| `make lint`        | Ruff check                               |
+| `make fmt`         | Ruff format                              |
+| `make check`       | Lint then test                           |
+| `make check-version` | Ensure version matches pyproject.toml  |
+| `make bump-patch`  | Bump patch, update CHANGELOG              |
+| `make bump-minor`  | Bump minor, update CHANGELOG              |
+| `make bump-major`  | Bump major, update CHANGELOG              |
+| `make install-hooks` | Install pre-commit (version + ruff)     |
+| `make build`       | Build sdist/wheel into `dist/`           |
+| `make clean`       | Remove caches and build artifacts         |
+
+After cloning, run `make install-hooks` to install the pre-commit hook (version consistency check + ruff). Version is **single-sourced** in `pyproject.toml`; the package reads it via `importlib.metadata`. To release a new version, use `make bump-patch`, `make bump-minor`, or `make bump-major`, then edit the new CHANGELOG section and tag/release.
 
 Manual checks:
 
@@ -53,13 +60,20 @@ pytest tests/ -v
 
 ---
 
-## Versioning and releases
+## Versioning and changelog
 
-- We use **Semantic Versioning** (e.g. `v0.1.0`, `v0.2.0`).
-- Releases are cut from `main` by creating a tag and (on GitHub) a **Release**:
-  - `git tag v0.1.0 && git push origin v0.1.0`
+- **Single source of truth:** Version is only in `pyproject.toml`. The package exposes it via `importlib.metadata` (no hardcoded version in code).
+- **Pre-commit:** The `check-version` hook ensures the installed package version matches `pyproject.toml` (run `make install-hooks`).
+- **Bumping:** Use `make bump-patch`, `make bump-minor`, or `make bump-major`. Each updates `pyproject.toml` and adds a new section to `CHANGELOG.md` (edit the new section to describe changes).
+- **Changelog:** [CHANGELOG.md](CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/). Maintain it when releasing.
+
+## Releases
+
+- We use **Semantic Versioning** (e.g. `v0.2.0`).
+- Cut a release: bump version (`make bump-*`), edit CHANGELOG, commit, then create a tag and (on GitHub) a **Release**:
+  - `git tag v0.2.0 && git push origin v0.2.0`
   - Create a GitHub Release from that tag and publish it.
-- **CI:** Lint and test run on push/PR (GitHub Actions and GitLab CI). On **published GitHub Release**, the workflow builds the package and **publishes to PyPI** (requires `PYPI_API_TOKEN` secret).
+- **CI:** Lint and test run on push/PR. On **published GitHub Release**, the workflow publishes to PyPI (requires `PYPI_API_TOKEN` secret).
 
 ---
 

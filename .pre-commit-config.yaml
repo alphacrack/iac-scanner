@@ -1,0 +1,21 @@
+# Pre-commit hooks. Install: pre-commit install. Run: pre-commit run --all-files
+# See https://pre-commit.com
+
+default_language_version:
+  python: python3
+
+repos:
+  - repo: local
+    hooks:
+      - id: check-version
+        name: check version (pyproject.toml vs package)
+        entry: python scripts/check_version.py
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

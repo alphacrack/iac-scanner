@@ -5,6 +5,7 @@ from pathlib import Path
 
 import click
 
+from iac_scanner import __version__
 from iac_scanner.factory import create_scanner
 from iac_scanner.orchestration.runner import run_pipeline
 from iac_scanner.output.report import write_report_and_fixes
@@ -35,7 +36,7 @@ def _require_api_keys(need_fix: bool) -> None:
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="iac-scan")
+@click.version_option(version=__version__, prog_name="iac-scan")
 def main() -> None:
     """Scan Terraform (main.tf) or CDK (index.ts) IaC and output a report plus fixed code."""
     pass
