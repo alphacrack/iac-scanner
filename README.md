@@ -68,10 +68,9 @@ export ANTHROPIC_API_KEY=sk-ant-...
 iac-scan scan ./tf -o ./out
 ```
 
-## Contributing and versioning
+## Contributing
 
-- **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md) (issues, PRs, code style, versioning).
-- **Releases:** We use [Semantic Versioning](https://semver.org/); releases are tagged (e.g. `v0.1.0`). CI runs on GitLab and GitHub (lint, test, build on tags).
+Contribution guidelines, development setup, and release process are in **[CONTRIBUTING.md](CONTRIBUTING.md)** (in the source repository). If you installed from PyPI, open the project repo to see that file.
 
 ## Project layout (factory + orchestration)
 
