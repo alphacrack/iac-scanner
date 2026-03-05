@@ -1,8 +1,34 @@
 # IaC Scanner
 
+[![PyPI version](https://img.shields.io/pypi/v/iac-scanner)](https://pypi.org/project/iac-scanner/)
+[![CI](https://github.com/bishwasjha/iac-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/bishwasjha/iac-scanner/actions/workflows/ci.yml)
+
 Python CLI that scans Terraform and AWS CDK Infrastructure-as-Code, then produces a **report** and **fixed code**. Built with a **factory pattern** (scanner per IaC type) and **LangChain** orchestration where **each task uses a different AI** (analysis vs code generation).
 
 **License:** [Personal Use License](LICENSE) — personal use permitted; redistribution (including publishing or selling) requires permission. Contributing back via pull request is welcome.
+
+## Quickstart (30 seconds, no API key)
+
+```bash
+pip install iac-scanner
+iac-scan scan ./samples/tf -o ./out --scan-only
+```
+
+Example output:
+
+```
+Detected: terraform (entry: .../samples/tf/main.tf)
+Scan-only: writing report (no AI).
+Output written to: ./out
+  - ./out/scan-report.json
+```
+
+Open `./out/scan-report.json` for `iac_type`, `metadata.files`, and `findings`. To get **findings and fixed code**, set `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`) and run without `--scan-only`:
+
+```bash
+export OPENAI_API_KEY=sk-...
+iac-scan scan ./samples/tf -o ./out
+```
 
 ## Input (CLI)
 
@@ -67,6 +93,10 @@ export OPENAI_API_KEY=sk-...
 export ANTHROPIC_API_KEY=sk-ant-...
 iac-scan scan ./tf -o ./out
 ```
+
+## Blog and tutorial
+
+Articles and a step-by-step tutorial are published on **GitHub Pages**. Enable in the repo under **Settings → Pages** (source: branch **main**, folder **/docs**). The site will be at `https://<owner>.github.io/iac-scanner/`.
 
 ## Contributing
 
