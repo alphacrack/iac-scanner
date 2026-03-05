@@ -1,0 +1,11 @@
+# Jekyll config for IaC Scanner GitHub Pages
+title: IaC Scanner
+description: "Scan Terraform and CDK IaC, get a report and fixed code. LangChain + dual AI (analysis and fix)."
+theme: jekyll-theme-cayman
+
+# GitHub Pages project site: https://<owner>.github.io/iac-scanner/
+url: ""
+baseurl: "/iac-scanner"
+
+markdown: kramdown
+highlighter: rouge

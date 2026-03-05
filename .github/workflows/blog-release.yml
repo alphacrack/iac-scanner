@@ -1,0 +1,53 @@
+# Manual workflow: create a new blog post and tutorial "What's new" section, then push to trigger GitHub Pages deploy.
+# Run from Actions → Blog release → Run workflow (optionally set version, title, summary).
+name: Blog release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 0.2.1)"
+        required: true
+        type: string
+      post_title:
+        description: "Post title (optional)"
+        required: false
+        type: string
+      summary:
+        description: "One-line summary (optional)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  blog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate blog post and tutorial update
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          POST_TITLE: ${{ github.event.inputs.post_title }}
+          SUMMARY: ${{ github.event.inputs.summary }}
+        run: |
+          ARGS=("$VERSION")
+          [ -n "$POST_TITLE" ] && ARGS+=(--title "$POST_TITLE")
+          [ -n "$SUMMARY" ] && ARGS+=(--summary "$SUMMARY")
+          python scripts/generate_blog_post.py "${ARGS[@]}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --staged --quiet || git commit -m "Blog: add release v${{ github.event.inputs.version }} post and tutorial update"
+          git push
