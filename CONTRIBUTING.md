@@ -60,6 +60,10 @@ pytest tests/ -v
 
 ---
 
+## Blog and tutorials
+
+The project blog and tutorial live in the **`docs/`** directory and are published via **GitHub Pages** (enable in Settings → Pages, source: main / docs). New posts and tutorial "What's new" sections are created by running the **Actions → Blog release** workflow manually: open the **Actions** tab, select **Blog release**, click **Run workflow**, then enter the version (e.g. `0.2.1`) and optionally a post title and one-line summary. The workflow generates a new post from `CHANGELOG.md` and appends a subsection to the tutorial, then pushes to trigger a Pages deploy.
+
 ## Versioning and changelog
 
 - **Single source of truth:** Version is only in `pyproject.toml`. The package exposes it via `importlib.metadata` (no hardcoded version in code).
@@ -74,6 +78,15 @@ pytest tests/ -v
   - `git tag v0.2.0 && git push origin v0.2.0`
   - Create a GitHub Release from that tag and publish it.
 - **CI:** Lint and test run on push/PR. On **published GitHub Release**, the workflow publishes to PyPI (requires `PYPI_API_TOKEN` secret).
+
+### Trusted Publishing (PyPI)
+
+Using [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) avoids storing a long-lived API token and improves supply-chain credibility. To enable it:
+
+1. On **PyPI**: open the project → **Publishing** → **Add a new pending publisher**.
+2. Choose **GitHub** as the provider, select this repository (e.g. `bishwasjha/iac-scanner`), set the **Workflow name** to `publish-pypi.yml`, and set the **Environment** if you use one (optional).
+3. Add the publisher and approve any pending prompt on the PyPI side.
+4. In the repo workflow [.github/workflows/publish-pypi.yml](.github/workflows/publish-pypi.yml), you can then use `pypa/gh-action-pypi-publish` without passing `password: ${{ secrets.PYPI_API_TOKEN }}` (the action will use OIDC). Once Trusted Publishing is working, you can remove or stop maintaining the `PYPI_API_TOKEN` secret for uploads.
 
 ---
 
