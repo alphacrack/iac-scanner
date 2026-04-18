@@ -76,7 +76,7 @@ github = []
 # MCP server mode — expose iac-scanner as tools to Claude Desktop / Cursor / Continue.dev.
 # Host app supplies the LLM; iac-scanner does not need any LLM API key.
 mcp = [
-    "mcp>=1.0.0",
+    "mcp>=1.27.0",
 ]
 # Rule-engine hybrid mode — Checkov pre-pass + LLM augment + post-fix verification.
 rules = [
@@ -85,7 +85,7 @@ rules = [
 # Everything.
 all = [
     "langchain-ollama>=0.2.0",
-    "mcp>=1.0.0",
+    "mcp>=1.27.0",
     "checkov>=3.0.0,<4.0.0",
 ]
 
