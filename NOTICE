@@ -1,0 +1,17 @@
+iac-scanner
+Copyright 2026 IaC Scanner contributors.
+
+This product includes software developed at the IaC Scanner project
+(https://github.com/bishwasjha/iac-scanner).
+
+Licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
+
+This product depends on third-party software under their respective licenses:
+  - click (BSD-3-Clause)
+  - langchain, langchain-openai, langchain-anthropic, langchain-core, langchain-community (MIT)
+  - pydantic (MIT)
+
+Optional integrations (installed via extras):
+  - checkov (Apache-2.0) — rule-based IaC scanning pre/post-pass
+  - langchain-ollama (MIT) — local LLM backend
+  - mcp (MIT) — Model Context Protocol server mode

@@ -1,7 +1,14 @@
 """CDK scanner - entry index.ts (or index.js)."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
+from iac_scanner.scanners._filters import (
+    enforce_input_size,
+    redact_secrets,
+    should_skip,
+)
 from iac_scanner.scanners.base import IacScanner, ScanResult
 
 
@@ -38,7 +45,7 @@ class CdkScanner(IacScanner):
         return (path / "index.ts").is_file() or (path / "index.js").is_file()
 
     def list_files(self) -> list[Path]:
-        """CDK: entry file and common lib/stack files in same dir."""
+        """CDK: entry file and common lib/stack files in same dir, minus skip-list."""
         if not self._entry_resolved.exists():
             return []
         files = [self._entry_resolved]
@@ -47,11 +54,11 @@ class CdkScanner(IacScanner):
             d = base / name
             if d.is_dir():
                 for ext in (".ts", ".js"):
-                    files.extend(d.glob(f"*{ext}"))
+                    files.extend(p for p in d.glob(f"*{ext}") if not should_skip(p))
         return sorted(set(files))
 
     def scan(self) -> ScanResult:
-        """Load CDK entry and related files."""
+        """Load CDK entry and related files, redact secrets, enforce size cap."""
         files = self.list_files()
         if not files:
             return ScanResult(
@@ -63,13 +70,18 @@ class CdkScanner(IacScanner):
         raw_content = ""
         for f in files:
             try:
-                raw_content += f"\n// --- {f.name} ---\n{f.read_text(encoding='utf-8', errors='replace')}"
-            except Exception as e:
+                file_text = f.read_text(encoding="utf-8", errors="replace")
+                raw_content += f"\n// --- {f.name} ---\n{file_text}"
+            except Exception as e:  # noqa: BLE001
                 raw_content += f"\n// --- {f.name} (read error: {e}) ---\n"
+
+        raw_content = redact_secrets(raw_content.strip())
+        enforce_input_size(raw_content)
+
         return ScanResult(
             iac_type=self.iac_type,
             entry_path=self._entry_resolved,
-            raw_content=raw_content.strip(),
+            raw_content=raw_content,
             findings=[],
             metadata={"files": [str(p) for p in files]},
         )

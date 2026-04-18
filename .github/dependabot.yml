@@ -1,0 +1,47 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - python
+    groups:
+      langchain:
+        patterns:
+          - "langchain*"
+      dev-deps:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+    ignore:
+      # LangChain 0.4.x requires a coordinated port — handled manually.
+      - dependency-name: langchain
+        update-types: [version-update:semver-major]
+      - dependency-name: langchain-core
+        update-types: [version-update:semver-major]
+      - dependency-name: langchain-openai
+        update-types: [version-update:semver-major]
+      - dependency-name: langchain-anthropic
+        update-types: [version-update:semver-major]
+      - dependency-name: langchain-community
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions

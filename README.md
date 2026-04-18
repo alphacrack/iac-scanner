@@ -5,7 +5,11 @@
 
 Python CLI that scans Terraform and AWS CDK Infrastructure-as-Code, then produces a **report** and **fixed code**. Built with a **factory pattern** (scanner per IaC type) and **LangChain** orchestration where **each task uses a different AI** (analysis vs code generation).
 
-**License:** [Personal Use License](LICENSE) — personal use permitted; redistribution (including publishing or selling) requires permission. Contributing back via pull request is welcome.
+iac-scanner **complements** rule-based scanners like Checkov, tfsec, and KICS — it doesn't replace them. Its differentiator is **AI-generated fixes** alongside findings. Optional Checkov integration (`pip install iac-scanner[rules]`) grounds the LLM with deterministic rule findings.
+
+> **AI-generated output — review before applying.** Fixed code is written to `scan-output/fixed/` and must be human-reviewed before overwriting your working tree. No auto-apply.
+
+**License:** [Apache License 2.0](LICENSE).
 
 ## Quickstart (30 seconds, no API key)
 
