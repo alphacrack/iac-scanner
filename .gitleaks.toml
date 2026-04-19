@@ -1,0 +1,38 @@
+# Gitleaks configuration.
+# Our redaction-regex tests contain fake-but-realistic secret patterns so we
+# can verify the patterns actually match. Allowlist those test files but keep
+# the default rule set everywhere else.
+#
+# Docs: https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist test fixtures + sample IaC with intentional fake credentials."
+paths = [
+    '''^tests/test_filters\.py$''',
+    '''^tests/test_cli_branches\.py$''',
+    '''^tests/test_providers\.py$''',
+    '''^tests/test_scanners_edge\.py$''',
+    '''^tests/test_rules_engine\.py$''',
+    '''^tests/test_smoke_cli\.py$''',
+    '''^tests/conftest\.py$''',
+    '''^samples/''',
+    # Keep docs-site out of the secret path scope — Jekyll metadata only
+    '''^docs/_config\.yml$''',
+]
+# Known-fake literals that appear in README quickstart examples or docs.
+regexes = [
+    '''AKIAIOSFODNN7EXAMPLE''',  # Canonical AWS example key from AWS docs
+    '''ghp_abcdefghijklmnopqrstuvwxyz0123456789''',
+    '''sk-abcdef1234567890abcdef1234567890''',
+    '''sk-ant-api03-x{20,}''',
+    '''eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiIxIn0\.abcdefg''',
+]
+stopwords = [
+    "REDACTED_SECRET",
+    "REDACTED",
+    "placeholder",
+    "example",
+]

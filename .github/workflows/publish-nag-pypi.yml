@@ -1,0 +1,148 @@
+# Publish iac-scanner-cdk-nag companion package to PyPI via Trusted Publishing.
+#
+# Tag format: `nag-v<semver>` (e.g., `nag-v0.1.0`). Using a prefixed tag keeps
+# companion-package releases independent from the core `v*` tags consumed by
+# publish-pypi.yml.
+#
+# One-time setup on PyPI:
+#   https://pypi.org/manage/project/iac-scanner-cdk-nag/settings/publishing/
+#   Owner: alphacrack
+#   Repository: iac-scanner
+#   Workflow filename: publish-nag-pypi.yml
+#   Environment: release-nag
+#
+# Side-output: CycloneDX SBOM + Sigstore signatures attached to the GitHub
+# Release when tagged.
+name: Publish iac-scanner-cdk-nag to PyPI
+
+on:
+  push:
+    tags:
+      - "nag-v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build + SBOM + Sigstore, but skip the PyPI upload"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: packages/iac-scanner-cdk-nag
+
+jobs:
+  # ---------- Verify the extension tests pass before publishing ----------
+  test:
+    name: Test iac-scanner-cdk-nag
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      # Install the core package from the monorepo (path dep) so the extension
+      # picks up the latest unreleased core changes during release cut.
+      - name: Install core (editable)
+        working-directory: ${{ github.workspace }}
+        run: pip install -e ".[dev]"
+      - name: Install extension (editable)
+        run: pip install -e ".[dev]"
+      - run: ruff check src/ tests/
+      - run: mypy src/iac_scanner_cdk_nag
+      - run: pytest tests/ -v --tb=short
+
+  # ---------- Build sdist + wheel + SBOM ----------
+  build:
+    name: Build distributions + SBOM
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install build tools
+        run: pip install build twine cyclonedx-bom
+      - name: Build sdist + wheel
+        run: python -m build --outdir dist/
+      - name: Verify distributions
+        run: twine check dist/*
+      - name: Generate CycloneDX SBOM
+        run: |
+          pip install -e .
+          cyclonedx-py environment --output-format json --output-file sbom.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nag-dist
+          path: packages/iac-scanner-cdk-nag/dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nag-sbom
+          path: packages/iac-scanner-cdk-nag/sbom.cdx.json
+
+  # ---------- Publish to PyPI via Trusted Publishing (OIDC) ----------
+  publish:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: [build]
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+    runs-on: ubuntu-latest
+    environment:
+      name: release-nag
+      url: https://pypi.org/project/iac-scanner-cdk-nag/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nag-dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # No `password:` — Trusted Publishing uses OIDC.
+          # `packages-dir` defaults to ./dist/ which is where we downloaded the artifact.
+          packages-dir: dist/
+
+  # ---------- Sign artifacts + SBOM with Sigstore ----------
+  sign:
+    name: Sign artifacts with Sigstore
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nag-dist
+          path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: nag-sbom
+          path: .
+      - name: Sign with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            ./dist/*.tar.gz
+            ./dist/*.whl
+            ./sbom.cdx.json
+      - name: Attach signed artifacts + SBOM to the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/nag-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            ./dist/*.tar.gz ./dist/*.whl \
+            ./dist/*.sigstore \
+            ./sbom.cdx.json \
+            --clobber

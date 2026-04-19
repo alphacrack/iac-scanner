@@ -4,83 +4,159 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iac-scanner"
-version = "0.3.2"
-description = "CLI to scan and fix Terraform and CDK IaC with LangChain-orchestrated agents"
+version = "0.4.0"
+description = "AI-assisted IaC scanner and autofix for Terraform and AWS CDK. Complements rule-based scanners with LLM-generated fixes."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
 authors = [
     { name = "Bishwas Jha", email = "jha.bishwas@gmail.com" }
 ]
 keywords = [
     "terraform",
-    "cdk",
-    "aws",
     "aws-cdk",
-    "aws-cdk-lib",
-    "aws-cdk-lib-constructs",
-    "constructs",
-    "azure",
-    "azure-cdk",
-    "azure-cdk-lib",
-    "azure-cdk-lib-constructs",
-    "google",
-    "google-cdk",
-    "google-cdk-lib",
-    "google-cdk-lib-constructs",
     "iac",
-    "iac-scanner",
-    "iac-scanner-cli",
-    "iac-scanner-langchain",
-    "iac-scanner-langchain-orchestrated",
-    "iac-scanner-langchain-orchestrated-agents",
-    "iac-scanner-langchain-orchestrated-agents-terraform",
-    "iac-scanner-langchain-orchestrated-agents-cdk",
-    "iac-scanner-langchain-orchestrated-agents-terraform-cdk",
-    "iac-scanner-langchain-orchestrated-agents-terraform-cdk-langchain",
     "infrastructure-as-code",
     "security",
+    "sast",
+    "sarif",
+    "devsecops",
+    "ai",
     "langchain",
-    "cli",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: Other/Proprietary License",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security",
     "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
 ]
 dependencies = [
     "click>=8.1.0",
-    "langchain>=0.3.0",
-    "langchain-openai>=0.2.0",
-    "langchain-anthropic>=0.2.0",
-    "langchain-community>=0.3.0",
-    "langchain-core>=0.3.0",
-    "pydantic>=2.0.0",
+    "langchain>=0.3.0,<0.4.0",
+    "langchain-openai>=0.2.0,<0.3.0",
+    "langchain-anthropic>=0.2.0,<0.3.0",
+    "langchain-core>=0.3.0,<0.4.0",
+    "langchain-community>=0.3.0,<0.4.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "tiktoken>=0.7.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "respx>=0.21.0",
     "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "bandit[toml]>=1.7.0",
+    "pip-audit>=2.7.0",
+    "cyclonedx-bom>=4.0.0",
     "build>=1.0.0",
     "pre-commit>=3.0.0",
+]
+# Local LLM via Ollama (no API key required)
+local = [
+    "langchain-ollama>=0.2.0",
+]
+# GitHub Models provider — free for GitHub-authenticated users.
+# Uses langchain-openai with a custom base_url + GITHUB_TOKEN as the API key.
+# No additional runtime deps beyond the base langchain-openai.
+github = []
+# MCP server mode — expose iac-scanner as tools to Claude Desktop / Cursor / Continue.dev.
+# Host app supplies the LLM; iac-scanner does not need any LLM API key.
+mcp = [
+    "mcp>=1.0.0",
+]
+# Rule-engine hybrid mode — Checkov pre-pass + LLM augment + post-fix verification.
+rules = [
+    "checkov>=3.0.0,<4.0.0",
+]
+# Everything.
+all = [
+    "langchain-ollama>=0.2.0",
+    "mcp>=1.0.0",
+    "checkov>=3.0.0,<4.0.0",
 ]
 
 [project.scripts]
 iac-scan = "iac_scanner.cli:main"
+iac-scan-mcp = "iac_scanner.mcp_server:main"
 
 [project.urls]
 Homepage = "https://github.com/bishwasjha/iac-scanner"
 Repository = "https://github.com/bishwasjha/iac-scanner"
 Documentation = "https://bishwasjha.github.io/iac-scanner/"
 Issues = "https://github.com/bishwasjha/iac-scanner/issues"
+Changelog = "https://github.com/bishwasjha/iac-scanner/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# Ship the PEP 561 marker so downstream packages (and mypy running in other
+# repos) recognize this package as typed.
+[tool.setuptools.package-data]
+iac_scanner = ["py.typed"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "e2e: end-to-end tests that hit real LLM APIs (opt-in, nightly only)",
+    "smoke: quick smoke tests that run in CI without external services",
+    "integration: integration tests with mocked LLM providers",
+]
+
+[tool.coverage.run]
+source = ["src/iac_scanner"]
+branch = true
+omit = [
+    "src/iac_scanner/mcp_server.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+show_missing = true
+skip_covered = false
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "checkov.*",
+    "langchain_ollama.*",
+    "mcp.*",
+]
+ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "samples", "docs"]
+# B101 — assert_used: pytest uses assert.
+# B310 — urllib.urlopen: only called in providers.py with an http(s) scheme guard upstream.
+skips = ["B101", "B310"]

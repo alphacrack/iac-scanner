@@ -1,0 +1,83 @@
+name: Nightly E2E
+
+on:
+  schedule:
+    # 03:00 UTC daily
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: "Comma-separated providers to test (openai,anthropic,github,ollama)"
+        required: false
+        default: "openai,anthropic"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E (${{ matrix.provider }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [openai, anthropic, github, ollama]
+    env:
+      # Cost cap per scan — abort any E2E that projects higher than this
+      IAC_MAX_SPEND_USD: "0.25"
+      # Disable response cache so E2E genuinely hits the LLM
+      IAC_NO_CACHE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,all]"
+
+      # ---------- Ollama only: start a local server ----------
+      - name: Start Ollama (local LLM)
+        if: matrix.provider == 'ollama'
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull llama3.1:8b-instruct-q4_K_M
+
+      # ---------- Provider-specific env ----------
+      - name: Configure provider env
+        run: |
+          echo "IAC_PROVIDER=${{ matrix.provider }}" >> $GITHUB_ENV
+          case "${{ matrix.provider }}" in
+            openai)
+              [ -n "${{ secrets.OPENAI_API_KEY }}" ] || { echo "::warning::OPENAI_API_KEY not set — skipping"; exit 0; }
+              echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+              ;;
+            anthropic)
+              [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ] || { echo "::warning::ANTHROPIC_API_KEY not set — skipping"; exit 0; }
+              echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> $GITHUB_ENV
+              ;;
+            github)
+              # GITHUB_TOKEN is always available in Actions
+              echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+              ;;
+            ollama)
+              echo "OLLAMA_HOST=http://localhost:11434" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Run E2E tests
+        run: pytest tests/ -v -m e2e --tb=short
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.provider }}
+          path: |
+            tests/e2e-output/
+            *.log

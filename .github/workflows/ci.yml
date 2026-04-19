@@ -1,49 +1,173 @@
-# GitHub Actions CI - lint, test, build
-# Mirrors GitLab CI for versioning and community contributions
 name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, development]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
+  # ---------- Lint (ruff check + format) ----------
   lint:
+    name: Lint (ruff)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
       - run: pip install -e ".[dev]"
       - run: ruff check src/ tests/
       - run: ruff format --check src/ tests/
 
-  test:
+  # ---------- Type check (mypy --strict) ----------
+  typecheck:
+    name: Type check (mypy)
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: mypy --strict
+        run: mypy src/iac_scanner
+
+  # ---------- Unit + integration tests ----------
+  test:
+    name: Tests (py${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
       - run: pip install -e ".[dev]"
-      - run: pytest tests/ -v --tb=short
+      - name: Unit + integration tests with coverage
+        run: |
+          pytest tests/ -v --tb=short \
+            --cov=iac_scanner \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            -m "not e2e"
+      # Coverage gate target for v1.0.0 is --cov-fail-under=80.
+      # Enabled as a soft check for now; flip to a hard gate alongside the
+      # test expansion tracked in the v1.0.0 plan.
+      - name: Coverage summary
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: |
+          python -c "import xml.etree.ElementTree as ET; \
+            r=ET.parse('coverage.xml').getroot(); \
+            pct=float(r.get('line-rate',0))*100; \
+            print(f'Line coverage: {pct:.1f}%'); \
+            exit(0)"
+      - name: Upload coverage artifact
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
 
-  build:
+  # ---------- Smoke test (CLI against samples, no LLM) ----------
+  smoke:
+    name: Smoke test (CLI --scan-only)
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install build
-      - run: python -m build --outdir dist/
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Scan-only on Terraform sample
+        run: |
+          iac-scan scan ./samples/tf -o ./out-tf --scan-only
+          test -f ./out-tf/scan-report.json
+          python -c "import json; r=json.load(open('./out-tf/scan-report.json')); assert r['iac_type']=='terraform', r"
+      - name: Scan-only on CDK sample
+        run: |
+          iac-scan scan ./samples/cdk -o ./out-cdk --scan-only
+          test -f ./out-cdk/scan-report.json
+          python -c "import json; r=json.load(open('./out-cdk/scan-report.json')); assert r['iac_type']=='cdk', r"
+      - name: CLI --version
+        run: iac-scan --version
+      - name: CLI --help
+        run: iac-scan --help
+
+  # ---------- Companion packages (monorepo) ----------
+  # Runs every core PR so that a breaking change in core is caught against the
+  # companion packages before release. Full release CI for each companion lives
+  # in its dedicated publish-*.yml workflow.
+  test-extensions:
+    name: Extensions — iac-scanner-cdk-nag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install core (editable)
+        run: pip install -e ".[dev]"
+      - name: Install iac-scanner-cdk-nag (editable)
+        run: pip install -e "./packages/iac-scanner-cdk-nag[dev]"
+      - name: Lint + typecheck extension
+        working-directory: packages/iac-scanner-cdk-nag
+        run: |
+          ruff check src/ tests/
+          ruff format --check src/ tests/
+          mypy src/iac_scanner_cdk_nag
+      - name: Run extension tests
+        working-directory: packages/iac-scanner-cdk-nag
+        run: pytest tests/ -v --tb=short
+      - name: Verify plugin discovery end-to-end
+        run: |
+          python - <<'PY'
+          from iac_scanner.rules import available_engines, is_available
+          engines = available_engines()
+          print("engines:", engines)
+          assert "cdk-nag" in engines, f"cdk-nag plugin not discovered; got {engines}"
+          assert is_available("cdk-nag"), "cdk-nag should report as available after install"
+          PY
+
+  # ---------- Build distributions (sdist + wheel) ----------
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    needs: [lint, test, smoke, test-extensions]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install build twine
+      - name: Build core
+        run: python -m build --outdir dist/
+      - run: twine check dist/*
+      - name: Build iac-scanner-cdk-nag
+        run: python -m build --outdir dist-nag/ packages/iac-scanner-cdk-nag
+      - run: twine check dist-nag/*
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-nag
+          path: dist-nag/

@@ -1,5 +1,9 @@
-# Publish to PyPI when a GitHub Release is published (or when a tag v* is pushed)
-# Setup: Add repository secret PYPI_API_TOKEN with a PyPI API token (https://pypi.org/manage/account/token/)
+# Publish to PyPI via Trusted Publishing (OIDC) — no long-lived API token needed.
+# One-time setup on PyPI:
+#   https://pypi.org/manage/project/iac-scanner/settings/publishing/
+#   Owner: bishwasjha, Repository: iac-scanner, Workflow: publish-pypi.yml, Environment: release
+# Publishes on GitHub Release. Also produces a CycloneDX SBOM and Sigstore signatures
+# attached to the release as build provenance.
 name: Publish to PyPI
 
 on:
@@ -7,24 +11,85 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  publish:
+  build:
+    name: Build distributions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install build
-        run: pip install build
-
-      - name: Build package
+          cache: pip
+      - run: pip install build twine cyclonedx-bom
+      - name: Build sdist + wheel
         run: python -m build --outdir dist/
+      - name: Verify distributions
+        run: twine check dist/*
+      - name: Generate CycloneDX SBOM
+        run: |
+          pip install -e ".[all]"
+          cyclonedx-py environment --output-format json --output-file sbom.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.cdx.json
 
+  publish:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://pypi.org/project/iac-scanner/
+    permissions:
+      # Required for Trusted Publishing (OIDC)
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  sign:
+    name: Sign artifacts with Sigstore
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: dist
+          path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: sbom
+          path: .
+      - name: Sign with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            ./dist/*.tar.gz
+            ./dist/*.whl
+            ./sbom.cdx.json
+      - name: Attach signed artifacts + SBOM to the GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            ./dist/*.tar.gz ./dist/*.whl \
+            ./dist/*.sigstore \
+            ./sbom.cdx.json \
+            --clobber
