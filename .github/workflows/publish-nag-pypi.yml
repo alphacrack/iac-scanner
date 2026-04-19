@@ -80,11 +80,11 @@ jobs:
         run: |
           pip install -e .
           cyclonedx-py environment --output-format json --output-file sbom.cdx.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nag-dist
           path: packages/iac-scanner-cdk-nag/dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nag-sbom
           path: packages/iac-scanner-cdk-nag/sbom.cdx.json
