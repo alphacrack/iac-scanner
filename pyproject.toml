@@ -62,7 +62,7 @@ dev = [
     "bandit[toml]>=1.7.0",
     "pip-audit>=2.7.0",
     "cyclonedx-bom>=4.0.0",
-    "build>=1.0.0",
+    "build>=1.4.3",
     "pre-commit>=3.0.0",
 ]
 # Local LLM via Ollama (no API key required)
