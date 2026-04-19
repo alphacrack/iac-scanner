@@ -184,6 +184,22 @@ class TestCliRulesEngineRouting:
         hybrid_mock.assert_called_once()
         normal_mock.assert_not_called()
 
+    def test_unknown_rules_engine_name_exits_with_hint(self, tmp_path: Path) -> None:
+        result = CliRunner().invoke(
+            main,
+            [
+                "scan",
+                str(SAMPLES / "tf"),
+                "-o",
+                str(tmp_path / "out"),
+                "--scan-only",
+                "--rules-engine",
+                "tfsec",  # plausible but not installed in this env
+            ],
+        )
+        assert result.exit_code == 1
+        assert "unknown --rules-engine" in result.output.lower()
+
     def test_no_rules_engine_uses_plain_pipeline(self, tmp_path: Path) -> None:
         out_dir = tmp_path / "out"
         sentinel = PipelineResult(

@@ -25,6 +25,7 @@ from iac_scanner.llm import ProviderError, auto_detect_provider
 from iac_scanner.orchestration.hybrid import run_hybrid_pipeline
 from iac_scanner.orchestration.runner import PipelineResult, run_pipeline
 from iac_scanner.output.report import write_report_and_fixes
+from iac_scanner.rules import RuleEngineError, available_engines
 from iac_scanner.scanners._filters import InputTooLargeError
 
 
@@ -146,9 +147,14 @@ def main() -> None:
 )
 @click.option(
     "--rules-engine",
-    type=click.Choice(["checkov", "cdk-nag", "auto", "none"]),
+    type=str,
     default="none",
-    help="Rule-engine hybrid mode. 'auto' uses Checkov if installed. 'none' = LLM only.",
+    help=(
+        "Rule-engine hybrid mode. 'none' (default) = LLM only. 'auto' = union of every "
+        "installed engine (built-in: checkov; plugins discovered via the "
+        "`iac_scanner.rule_engines` entry point, e.g. `pip install iac-scanner-cdk-nag` "
+        "enables 'cdk-nag'). Pass any discovered engine name directly."
+    ),
 )
 def scan(
     path: Path,
@@ -178,6 +184,20 @@ def scan(
         os.environ["IAC_RULES_ENGINE"] = rules_engine
     if output_format in ("sarif", "both"):
         os.environ["IAC_OUTPUT_FORMAT"] = output_format
+
+    # Validate --rules-engine early with the full set of discovered plugins,
+    # so a typo surfaces a clear "did you mean checkov or cdk-nag?" hint instead
+    # of running the entire pipeline and failing mid-way.
+    if rules_engine not in ("none", "auto"):
+        valid = set(available_engines()) | {"checkov", "cdk-nag"}
+        if rules_engine not in valid:
+            click.echo(
+                f"Unknown --rules-engine {rules_engine!r}. "
+                f"Built-ins: checkov. Installed plugins: {sorted(valid - {'checkov'}) or 'none'}. "
+                f"Use 'none', 'auto', or one of those names.",
+                err=True,
+            )
+            raise SystemExit(1)
 
     try:
         scanner = create_scanner(path)
@@ -232,6 +252,9 @@ def scan(
         except InputTooLargeError as e:
             click.echo(f"Input too large: {e}", err=True)
             raise SystemExit(2) from e
+        except RuleEngineError as e:
+            click.echo(f"Rule engine error: {e}", err=True)
+            raise SystemExit(1) from e
         except ProviderError as e:
             click.echo(f"Provider error: {e}", err=True)
             raise SystemExit(1) from e
