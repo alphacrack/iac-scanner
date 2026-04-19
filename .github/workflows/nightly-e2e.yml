@@ -32,7 +32,7 @@ jobs:
       # Disable response cache so E2E genuinely hits the LLM
       IAC_NO_CACHE: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
