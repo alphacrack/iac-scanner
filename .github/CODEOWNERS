@@ -1,0 +1,24 @@
+# Code owners for iac-scanner.
+#
+# The maintainer is auto-requested for review on every PR. Add more handles as
+# the contributor base grows; this file is the single source of truth.
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repositorys-social-preview/about-code-owners
+
+# Default owner for the entire repo.
+*                                           @alphacrack
+
+# Release-critical paths deserve extra attention.
+/pyproject.toml                             @alphacrack
+/.github/workflows/                         @alphacrack
+/.github/dependabot.yml                     @alphacrack
+/LICENSE                                    @alphacrack
+/NOTICE                                     @alphacrack
+/SECURITY.md                                @alphacrack
+
+# LLM provider plumbing — architecture-sensitive.
+/src/iac_scanner/llm/                       @alphacrack
+/src/iac_scanner/orchestration/             @alphacrack
+
+# Companion packages — own gating.
+/packages/iac-scanner-cdk-nag/              @alphacrack
