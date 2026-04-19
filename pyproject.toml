@@ -103,6 +103,11 @@ Changelog = "https://github.com/bishwasjha/iac-scanner/blob/main/CHANGELOG.md"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# Ship the PEP 561 marker so downstream packages (and mypy running in other
+# repos) recognize this package as typed.
+[tool.setuptools.package-data]
+iac_scanner = ["py.typed"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra --strict-markers --strict-config"

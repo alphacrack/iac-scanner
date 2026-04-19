@@ -1,0 +1,13 @@
+# Ruff config for iac-scanner-cdk-nag companion package.
+# Mirrors the core repo config so import ordering and style stay consistent.
+target-version = "py310"
+line-length = 120
+src = ["src", "tests"]
+exclude = ["dist", "build", ".git", "*.egg-info"]
+
+[lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[format]
+quote-style = "double"

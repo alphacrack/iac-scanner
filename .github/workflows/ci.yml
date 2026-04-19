@@ -109,11 +109,47 @@ jobs:
       - name: CLI --help
         run: iac-scan --help
 
+  # ---------- Companion packages (monorepo) ----------
+  # Runs every core PR so that a breaking change in core is caught against the
+  # companion packages before release. Full release CI for each companion lives
+  # in its dedicated publish-*.yml workflow.
+  test-extensions:
+    name: Extensions — iac-scanner-cdk-nag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install core (editable)
+        run: pip install -e ".[dev]"
+      - name: Install iac-scanner-cdk-nag (editable)
+        run: pip install -e "./packages/iac-scanner-cdk-nag[dev]"
+      - name: Lint + typecheck extension
+        working-directory: packages/iac-scanner-cdk-nag
+        run: |
+          ruff check src/ tests/
+          ruff format --check src/ tests/
+          mypy src/iac_scanner_cdk_nag
+      - name: Run extension tests
+        working-directory: packages/iac-scanner-cdk-nag
+        run: pytest tests/ -v --tb=short
+      - name: Verify plugin discovery end-to-end
+        run: |
+          python - <<'PY'
+          from iac_scanner.rules import available_engines, is_available
+          engines = available_engines()
+          print("engines:", engines)
+          assert "cdk-nag" in engines, f"cdk-nag plugin not discovered; got {engines}"
+          assert is_available("cdk-nag"), "cdk-nag should report as available after install"
+          PY
+
   # ---------- Build distributions (sdist + wheel) ----------
   build:
     name: Build sdist + wheel
     runs-on: ubuntu-latest
-    needs: [lint, test, smoke]
+    needs: [lint, test, smoke, test-extensions]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -121,9 +157,17 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install build twine
-      - run: python -m build --outdir dist/
+      - name: Build core
+        run: python -m build --outdir dist/
       - run: twine check dist/*
+      - name: Build iac-scanner-cdk-nag
+        run: python -m build --outdir dist-nag/ packages/iac-scanner-cdk-nag
+      - run: twine check dist-nag/*
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-nag
+          path: dist-nag/

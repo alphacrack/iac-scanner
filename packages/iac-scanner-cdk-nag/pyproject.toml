@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iac-scanner-cdk-nag"
+version = "0.1.0"
+description = "cdk-nag rule-engine adapter for iac-scanner. Shells out to `cdk synth`, parses AwsSolutions / HIPAA / NIST-800-53 nag annotations, returns them as iac-scanner Findings with CWE/framework tags."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Bishwas Jha", email = "jha.bishwas@gmail.com" }
+]
+keywords = [
+    "aws-cdk",
+    "cdk-nag",
+    "iac",
+    "iac-scanner",
+    "security",
+    "sast",
+    "sarif",
+    "devsecops",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
+dependencies = [
+    "iac-scanner>=0.4.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "build>=1.0.0",
+]
+
+# Plugin discovery — iac-scanner core finds this adapter via this entry point group.
+# See iac_scanner/rules/engine.py for the consumer side.
+[project.entry-points."iac_scanner.rule_engines"]
+cdk-nag = "iac_scanner_cdk_nag.adapter:run_cdk_nag"
+
+[project.urls]
+Homepage = "https://github.com/alphacrack/iac-scanner"
+Repository = "https://github.com/alphacrack/iac-scanner"
+Issues = "https://github.com/alphacrack/iac-scanner/issues"
+Changelog = "https://github.com/alphacrack/iac-scanner/blob/development/packages/iac-scanner-cdk-nag/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# PEP 561 typed-package marker.
+[tool.setuptools.package-data]
+iac_scanner_cdk_nag = ["py.typed"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra --strict-markers --strict-config"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+disallow_untyped_defs = true
+check_untyped_defs = true

@@ -9,8 +9,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from iac_scanner.models import Finding, FindingSource
-from iac_scanner.rules import RuleEngineError, RuleEngineNotInstalled, is_available, run_rule_engine
+from iac_scanner.models import Finding, FindingSource, Severity
+from iac_scanner.rules import (
+    RuleEngineError,
+    RuleEngineNotInstalled,
+    available_engines,
+    is_available,
+    run_rule_engine,
+)
 from iac_scanner.rules.checkov import CheckovError, CheckovNotInstalled, run_checkov
 
 # ---- Fixture: a minimal Checkov JSON payload ----
@@ -58,6 +64,117 @@ class TestIsAvailable:
     def test_false_for_unknown_engine(self) -> None:
         assert is_available("unknown-engine") is False
 
+    def test_auto_false_when_nothing_available(self) -> None:
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=False),
+            patch("iac_scanner.rules.engine._discover_plugins", return_value={}),
+        ):
+            assert is_available("auto") is False
+
+    def test_plugin_name_respected(self) -> None:
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=False),
+            patch(
+                "iac_scanner.rules.engine._discover_plugins",
+                return_value={"cdk-nag": lambda p, t: []},
+            ),
+        ):
+            assert is_available("cdk-nag") is True
+            assert is_available("checkov") is False
+
+
+class TestAvailableEngines:
+    def test_lists_checkov_and_plugins(self) -> None:
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=True),
+            patch(
+                "iac_scanner.rules.engine._discover_plugins",
+                return_value={"cdk-nag": lambda p, t: [], "cdk-nag-v2": lambda p, t: []},
+            ),
+        ):
+            names = available_engines()
+        assert "checkov" in names
+        assert "cdk-nag" in names
+
+    def test_empty_when_nothing_installed(self) -> None:
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=False),
+            patch("iac_scanner.rules.engine._discover_plugins", return_value={}),
+        ):
+            assert available_engines() == []
+
+
+class TestPluginDispatch:
+    def _plugin_finding(self) -> Finding:
+        return Finding(
+            severity=Severity.HIGH,
+            title="nag-finding",
+            description="from plugin",
+            location="index.ts:App/Stack",
+            source=FindingSource.CDK_NAG,
+            rule_id="AwsSolutions-S1",
+        )
+
+    def test_explicit_plugin_name_dispatches_to_plugin(self) -> None:
+        plugin_finding = self._plugin_finding()
+        plugin = MagicMock(return_value=[plugin_finding])
+        with patch("iac_scanner.rules.engine._discover_plugins", return_value={"cdk-nag": plugin}):
+            result = run_rule_engine(Path("."), "cdk", engine="cdk-nag")
+        plugin.assert_called_once_with(Path("."), "cdk")
+        assert result == [plugin_finding]
+
+    def test_unknown_plugin_raises(self) -> None:
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=False),
+            patch("iac_scanner.rules.engine._discover_plugins", return_value={}),
+        ):
+            with pytest.raises(RuleEngineError, match="Unknown rule engine"):
+                run_rule_engine(Path("."), "cdk", engine="cdk-nag")
+
+    def test_plugin_not_installed_normalized(self) -> None:
+        class DummyNotInstalled(RuntimeError):
+            pass
+
+        def broken_plugin(path: Path, iac_type: str) -> list[Finding]:
+            raise DummyNotInstalled("cdk-nag not installed on PATH")
+
+        with patch("iac_scanner.rules.engine._discover_plugins", return_value={"cdk-nag": broken_plugin}):
+            with pytest.raises(RuleEngineNotInstalled):
+                run_rule_engine(Path("."), "cdk", engine="cdk-nag")
+
+    def test_auto_unions_checkov_and_plugin_findings(self) -> None:
+        checkov_finding = Finding(
+            severity=Severity.MEDIUM,
+            title="checkov-finding",
+            description="from checkov",
+            location="main.tf:5",
+            source=FindingSource.CHECKOV,
+            rule_id="CKV_AWS_1",
+        )
+        plugin_finding = self._plugin_finding()
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=True),
+            patch("iac_scanner.rules.engine.run_checkov", return_value=[checkov_finding]),
+            patch(
+                "iac_scanner.rules.engine._discover_plugins",
+                return_value={"cdk-nag": lambda p, t: [plugin_finding]},
+            ),
+        ):
+            result = run_rule_engine(Path("."), "cdk", engine="auto")
+        assert checkov_finding in result
+        assert plugin_finding in result
+
+    def test_auto_skips_broken_plugins(self) -> None:
+        def crashing_plugin(path: Path, iac_type: str) -> list[Finding]:
+            raise RuntimeError("something went wrong")
+
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=False),
+            patch("iac_scanner.rules.engine._discover_plugins", return_value={"broken": crashing_plugin}),
+        ):
+            # Should not raise — auto mode tolerates plugin failures
+            assert run_rule_engine(Path("."), "cdk", engine="auto") == []
+
 
 class TestRunRuleEngine:
     def test_engine_none_returns_empty(self) -> None:
@@ -93,7 +210,13 @@ class TestRunRuleEngine:
                 rule_id="CKV_AWS_1",
             )
         ]
-        with patch("iac_scanner.rules.engine.run_checkov", return_value=canned):
+        # engine='auto' probes checkov_available before calling run_checkov,
+        # so we need to patch both to keep the test hermetic (Checkov may or
+        # may not actually be installed in the runner's venv).
+        with (
+            patch("iac_scanner.rules.engine.checkov_available", return_value=True),
+            patch("iac_scanner.rules.engine.run_checkov", return_value=canned),
+        ):
             result = run_rule_engine(Path("."), "terraform", engine="auto")
         assert result == canned
 

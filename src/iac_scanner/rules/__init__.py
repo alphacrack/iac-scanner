@@ -10,6 +10,7 @@ framework-mapped findings. Install via `pip install iac-scanner[rules]`.
 from iac_scanner.rules.engine import (
     RuleEngineError,
     RuleEngineNotInstalled,
+    available_engines,
     is_available,
     run_rule_engine,
 )
@@ -17,6 +18,7 @@ from iac_scanner.rules.engine import (
 __all__ = [
     "RuleEngineError",
     "RuleEngineNotInstalled",
+    "available_engines",
     "is_available",
     "run_rule_engine",
 ]
