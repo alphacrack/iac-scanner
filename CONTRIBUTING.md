@@ -46,7 +46,8 @@ pre-commit install
 | `pip-audit`                      | Dependency CVE audit                                     |
 | `pre-commit run --all-files`     | All pre-commit hooks (ruff, bandit, gitleaks, hygiene)   |
 | `python -m build`                | Build sdist + wheel into `dist/`                         |
-| `make bump-patch/minor/major`    | Bump version + add CHANGELOG section                     |
+| `make version`                   | Print version setuptools-scm would emit (tag-derived)    |
+| `make release-patch/minor/major` | Cut a release: promote CHANGELOG + create signed tag     |
 
 **Test markers:**
 
@@ -80,29 +81,42 @@ The project blog and tutorial live in [docs/](docs/) and are published via GitHu
 
 ## Versioning and changelog
 
-- **Single source of truth:** version lives only in `pyproject.toml`. The package reads it via `importlib.metadata`.
-- **Pre-commit hook:** `check-version` verifies consistency.
-- **Semver:** major = breaking API change (Apache-2.0 license change counted, back in v0.4.0); minor = new feature; patch = bug fix.
-- **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/). Update it with every PR that changes user-visible behavior.
+- **Single source of truth: git tags.** The package version is derived from the latest signed `vX.Y.Z` annotated tag by [setuptools-scm](https://setuptools-scm.readthedocs.io/). There is no `version = "..."` in `pyproject.toml`. Between tags, dev installs report a PEP 440 version like `0.5.1.dev3+gabcdef`.
+- **SemVer:** major = breaking API change (the Apache-2.0 license change counted, back in v0.4.0); minor = new feature; patch = bug fix.
+- **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/). Add an entry under `## [Unreleased]` with every PR that changes user-visible behavior. `make release-*` promotes that section into a versioned heading at release time.
+- **Inspect the current derived version:** `make version`.
 
 ---
 
 ## Releases
 
-We use **Semantic Versioning** (`vMAJOR.MINOR.PATCH`).
+We use **Semantic Versioning** (`vMAJOR.MINOR.PATCH`). Tags are the source of truth — there are no version bumps in source files to forget.
 
-1. Bump version: `make bump-patch` / `bump-minor` / `bump-major`.
-2. Edit the new CHANGELOG section to describe user-visible changes.
-3. Commit: `git commit -s -m "Release v0.X.Y"`.
-4. Tag: `git tag v0.X.Y && git push origin v0.X.Y`.
-5. Create a GitHub Release from that tag. This triggers [publish-pypi.yml](.github/workflows/publish-pypi.yml).
+1. Make sure every user-visible change is in `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+2. From a clean `main` (or `development` if that is the release branch), run:
+   ```bash
+   make release-patch     # or release-minor / release-major
+   # preview first:
+   make release-dry
+   ```
+   The script:
+   - promotes `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD` (and re-inserts an empty `[Unreleased]`);
+   - creates a DCO-signed-off commit;
+   - creates a **GPG-signed annotated tag** `vX.Y.Z` (use `--no-sign` if you have no signing key — not recommended).
+3. Push: `git push --follow-tags origin <branch>`.
 
-The publish workflow:
+Pushing the tag triggers:
 
-- Builds sdist + wheel and runs `twine check`.
-- Generates a **CycloneDX SBOM** (`sbom.cdx.json`) of the package dependencies.
-- Publishes to PyPI via **Trusted Publishing (OIDC)** — no long-lived API token needed.
-- Signs all artifacts + SBOM with **Sigstore** and attaches signatures to the GitHub Release.
+- **[release.yml](.github/workflows/release.yml)** — auto-creates the GitHub Release from the matching CHANGELOG section.
+- **[publish-pypi.yml](.github/workflows/publish-pypi.yml)** (on `release: published`) —
+  - Builds sdist + wheel and runs `twine check`.
+  - Generates a **CycloneDX SBOM** (`sbom.cdx.json`).
+  - Publishes to PyPI via **Trusted Publishing (OIDC)** — no long-lived API token needed.
+  - Signs all artifacts + SBOM with **Sigstore** and attaches signatures to the Release.
+
+### Hotfix / cherry-pick releases
+
+A patch release off an older tag is the same flow: check out the older tag, branch from it, cherry-pick the fix, then run `make release-patch`. setuptools-scm will compute the next patch from the tag you branched from.
 
 ### Trusted Publishing setup (one-time)
 

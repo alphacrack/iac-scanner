@@ -23,3 +23,6 @@ htmlcov/
 # Scanner output (local test runs)
 out/
 out-cdk/
+
+# setuptools-scm: version is derived from git tags, not committed
+src/iac_scanner/_version.py

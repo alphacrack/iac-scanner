@@ -6,7 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+
+- **Versioning is now tag-driven via [setuptools-scm](https://setuptools-scm.readthedocs.io/).** The package version is derived from the latest signed annotated `vX.Y.Z` git tag. `pyproject.toml` no longer has a hardcoded `version = ...`; it uses `dynamic = ["version"]`. `iac_scanner.__version__` reads from `_version.py` (written at build time by setuptools-scm) and falls back to `importlib.metadata` for installed wheels.
+- **Release flow is now `make release-{patch,minor,major}`.** The new `scripts/release.py` promotes `CHANGELOG.md [Unreleased]` → `[X.Y.Z]`, commits the change with DCO sign-off, and creates a GPG-signed annotated tag. Pushing the tag (`git push --follow-tags`) is the only step that triggers PyPI publish. The legacy `scripts/bump_version.py`, `scripts/check_version.py`, and the `check-version` pre-commit hook are removed.
+- **CI workflows fetch full git history** (`fetch-depth: 0`) where they build distributions, so setuptools-scm sees the tags it needs.
+
 ### Added
+
+- **`.github/workflows/release.yml`** — auto-creates a GitHub Release from the matching CHANGELOG section when a `vX.Y.Z` tag is pushed. Rejects lightweight tags. The `release: published` event then triggers the existing `publish-pypi.yml`.
+- **`.github/workflows/scorecard.yml`** — OpenSSF Scorecard runs weekly + on push to `main`. Results posted to the Security tab and to scorecard.dev (badge in README).
+- **`.github/workflows/codeql.yml`** — CodeQL static analysis (Python, `security-and-quality` query suite) on PR + weekly cron.
+- **`GOVERNANCE.md`** — roles, decision-making, branch-protection policy, release authority.
+- **`MAINTAINERS.md`** — canonical maintainer list (mirrors `.github/CODEOWNERS`).
+- **`SUPPORT.md`** — routes users to bug/feature/security/discussion channels.
+- **`scripts/apply_branch_protection.sh`** — `gh`-based, idempotent applier for the `main`-branch protection rules described in `GOVERNANCE.md`. Run from any maintainer's machine.
+- **README badges:** Python versions, CodeQL, OpenSSF Scorecard, DCO.
+
+### Previously planned (still tracked)
 
 - **Rule-engine plugin discovery.** Third-party rule engines can now register themselves via the `iac_scanner.rule_engines` entry-point group. Install e.g. [`iac-scanner-cdk-nag`](packages/iac-scanner-cdk-nag/) and the `cdk-nag` engine is auto-discovered — no core changes required. Core engine dispatcher in `src/iac_scanner/rules/engine.py`. New `available_engines()` helper lists every usable engine (built-in + plugins).
 - **Companion package: `iac-scanner-cdk-nag`** (`packages/iac-scanner-cdk-nag/`). Independent PyPI package that shells out to `cdk synth`, parses AwsSolutions / HIPAA / NIST-800-53 / PCI-DSS nag annotations, and returns them as iac-scanner Findings. Released via a dedicated `publish-nag-pypi.yml` workflow on `nag-v*` tags.
