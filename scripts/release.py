@@ -97,7 +97,10 @@ def promote_changelog(text: str, new_version: str) -> tuple[str, str]:
         raise SystemExit("Could not locate `## [Unreleased]` heading.")
 
     fresh = "## [Unreleased]\n\n"
-    promoted_heading = f"## [{new_version}] - {today}\n"
+    # The Unreleased-heading regex consumes the trailing blank line, so the
+    # promoted heading needs its own to keep KaC formatting (blank line before
+    # the next `###` subsection).
+    promoted_heading = f"## [{new_version}] - {today}\n\n"
 
     new_text = text[: m.start()] + fresh + promoted_heading + text[m.end() :]
 
@@ -171,7 +174,17 @@ def main() -> int:
     run(["git", "add", "CHANGELOG.md"])
     run(["git", "commit", "-s", "-m", f"Release {new_version}"])
 
-    tag_args = ["git", "tag", "-s" if not args.no_sign else "-a", tag, "-m", f"Release {new_version}", "-m", notes]
+    # --cleanup=verbatim prevents git from treating Markdown `### Changed` /
+    # `### Added` lines as comments and stripping them out of the tag message.
+    tag_args = [
+        "git",
+        "tag",
+        "--cleanup=verbatim",
+        "-s" if not args.no_sign else "-a",
+        tag,
+        "-m",
+        f"Release {new_version}\n\n{notes}",
+    ]
     try:
         run(tag_args)
     except subprocess.CalledProcessError:

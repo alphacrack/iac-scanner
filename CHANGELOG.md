@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-17
+
 ### Changed
 
 - **Versioning is now tag-driven via [setuptools-scm](https://setuptools-scm.readthedocs.io/).** The package version is derived from the latest signed annotated `vX.Y.Z` git tag. `pyproject.toml` no longer has a hardcoded `version = ...`; it uses `dynamic = ["version"]`. `iac_scanner.__version__` reads from `_version.py` (written at build time by setuptools-scm) and falls back to `importlib.metadata` for installed wheels.
