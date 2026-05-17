@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=82.0.1"]
+requires = ["setuptools>=82.0.1", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "iac-scanner"
-version = "0.4.0"
+# Version is derived from the latest signed git tag (vX.Y.Z) by setuptools-scm.
+# Do NOT set `version =` here. See [tool.setuptools_scm] below and CONTRIBUTING.md → "Releases".
+dynamic = ["version"]
 description = "AI-assisted IaC scanner and autofix for Terraform and AWS CDK. Complements rule-based scanners with LLM-generated fixes."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -107,6 +109,25 @@ where = ["src"]
 # repos) recognize this package as typed.
 [tool.setuptools.package-data]
 iac_scanner = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# Versioning: setuptools-scm derives the package version from git tags.
+#
+#   git tag -s v0.5.0 -m "Release 0.5.0"   →   iac-scanner==0.5.0
+#   (no tag, dirty tree)                   →   iac-scanner==0.5.1.devN+gSHA[.dYYYYMMDD]
+#
+# `version_file` writes a tracked-but-gitignored module so editable installs
+# and `iac_scanner.__version__` work without re-running `pip install -e .`.
+# ---------------------------------------------------------------------------
+[tool.setuptools_scm]
+version_file = "src/iac_scanner/_version.py"
+# Accept tags like "v1.2.3" and "v1.2.3rc1".
+tag_regex = "^v(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+(?:[._-]?(?:a|b|c|rc|alpha|beta|pre|preview)\\d*)?(?:\\.post\\d+)?(?:\\.dev\\d+)?)$"
+# PEP 440-compatible dev version between tags.
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+# Fallback used in source trees without git metadata (e.g. unpacked sdist with no PKG-INFO).
+fallback_version = "0.0.0+unknown"
 
 [tool.pytest.ini_options]
 minversion = "7.0"

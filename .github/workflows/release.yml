@@ -1,0 +1,87 @@
+# Auto-create a GitHub Release when a vX.Y.Z tag is pushed.
+#
+# This is the entry point for the release pipeline. The flow:
+#   1. Maintainer runs `make release-patch` (or minor/major). The script promotes
+#      CHANGELOG.md `[Unreleased]` → `[X.Y.Z]` and creates a signed annotated tag.
+#   2. Maintainer pushes with `git push --follow-tags`.
+#   3. This workflow fires on the tag push, extracts the CHANGELOG section for
+#      that version, and creates a GitHub Release with that section as the body.
+#   4. The `release.published` event then triggers `publish-pypi.yml` (build,
+#      SBOM, Trusted Publishing to PyPI, Sigstore signing).
+#
+# Tag verification: signed tags are preferred but not enforced here. If you want
+# to gate publishes on verified signatures, add a `gpg --verify` step or require
+# the `release` environment to have a manual approver.
+
+name: Release on tag
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"          # v1.2.3
+      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+" # v1.2.3-rc1 (pre-release)
+
+permissions:
+  contents: read
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # required to create the Release
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # need full history so the tag annotation is reachable
+
+      - name: Verify tag is annotated
+        run: |
+          tag_type=$(git cat-file -t "${GITHUB_REF_NAME}")
+          if [ "$tag_type" != "tag" ]; then
+            echo "::error::${GITHUB_REF_NAME} is a lightweight tag. Releases must use annotated (preferably signed) tags. Run 'make release-*' to create one."
+            exit 1
+          fi
+
+      - name: Extract CHANGELOG section for this version
+        id: changelog
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          echo "Extracting section for version: $version"
+          # Capture lines from `## [X.Y.Z]` up to (but not including) the next `## ` heading.
+          python - "$version" <<'PY' > release-notes.md
+          import re, sys
+          version = sys.argv[1]
+          text = open("CHANGELOG.md").read()
+          pat = re.compile(
+              rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=^## |\Z)",
+              re.DOTALL | re.MULTILINE,
+          )
+          m = pat.search(text)
+          if not m:
+              sys.exit(f"No CHANGELOG section for version {version!r}.")
+          body = m.group(1).strip()
+          print(body)
+          PY
+          echo "--- release-notes.md ---"
+          cat release-notes.md
+
+      - name: Determine pre-release flag
+        id: prerel
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == *-rc* || "${GITHUB_REF_NAME}" == *-alpha* || "${GITHUB_REF_NAME}" == *-beta* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release (triggers publish-pypi.yml)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file release-notes.md \
+            ${{ steps.prerel.outputs.prerelease == 'true' && '--prerelease' || '' }} \
+            --verify-tag

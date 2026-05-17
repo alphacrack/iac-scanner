@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -39,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -75,6 +79,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

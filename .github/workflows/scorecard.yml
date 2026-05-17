@@ -1,0 +1,55 @@
+# OpenSSF Scorecard — supply-chain security scoring.
+#
+# Posts SARIF results into the GitHub Security tab and (with publish_results)
+# updates the public scorecard.dev report card linked from the README badge.
+#
+# Required one-time setup (in repo Settings → Code security → Code scanning):
+#   - Enable Code scanning.
+# No secrets required. Uses an OIDC token (id-token: write) to publish results
+# to the OpenSSF API.
+
+name: OpenSSF Scorecard
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "32 5 * * 1"   # weekly, Mondays 05:32 UTC
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write   # upload SARIF to Code Scanning
+      id-token: write          # OIDC for publish_results
+      contents: read
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

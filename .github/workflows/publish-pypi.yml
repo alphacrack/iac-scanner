@@ -20,6 +20,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # setuptools-scm derives the version from git tags. Without full
+          # history (and unshallowed fetch), it falls back to fallback_version
+          # and the wheel filename will be "0.0.0+unknown" instead of "0.5.0".
+          fetch-depth: 0
+      - name: Verify setuptools-scm picks up a real tag version
+        run: |
+          pip install --upgrade setuptools-scm
+          v=$(python -c "from setuptools_scm import get_version; print(get_version(root='.'))")
+          echo "setuptools-scm version: $v"
+          if [[ "$v" == 0.0.0+unknown* || "$v" == *dev* ]]; then
+            echo "::error::Build will not be a clean release version (got '$v'). The release tag is probably missing or unreachable from this commit."
+            exit 1
+          fi
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

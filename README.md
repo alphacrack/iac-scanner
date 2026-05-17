@@ -1,8 +1,12 @@
 # IaC Scanner
 
 [![PyPI version](https://img.shields.io/pypi/v/iac-scanner)](https://pypi.org/project/iac-scanner/)
+[![Python versions](https://img.shields.io/pypi/pyversions/iac-scanner)](https://pypi.org/project/iac-scanner/)
 [![CI](https://github.com/alphacrack/iac-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/alphacrack/iac-scanner/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/alphacrack/iac-scanner/actions/workflows/codeql.yml/badge.svg)](https://github.com/alphacrack/iac-scanner/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/alphacrack/iac-scanner/badge)](https://securityscorecards.dev/viewer/?uri=github.com/alphacrack/iac-scanner)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![DCO](https://img.shields.io/badge/DCO-required-blue.svg)](https://developercertificate.org/)
 
 Python CLI that scans Terraform and AWS CDK Infrastructure-as-Code, reports security + best-practice findings, and **writes the fix**. Runs locally, keylessly, or grounded by Checkov.
 
@@ -162,6 +166,13 @@ Articles and a step-by-step tutorial are published on **GitHub Pages** at `https
 ## Contributing
 
 See **[CONTRIBUTING.md](CONTRIBUTING.md)** for development setup, test strategy, and the release process (Trusted Publishing + SBOM + Sigstore signing).
+
+## Governance & support
+
+- **[GOVERNANCE.md](GOVERNANCE.md)** — roles, decision-making, branch protection policy.
+- **[MAINTAINERS.md](MAINTAINERS.md)** — canonical list of maintainers.
+- **[SUPPORT.md](SUPPORT.md)** — where to ask questions, file bugs, and request features.
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1.
 
 ## Security
 

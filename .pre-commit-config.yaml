@@ -5,14 +5,9 @@ default_language_version:
   python: python3
 
 repos:
-  # Local: keep package version synced with pyproject.toml
-  - repo: local
-    hooks:
-      - id: check-version
-        name: check version (pyproject.toml vs package)
-        entry: python scripts/check_version.py
-        language: system
-        pass_filenames: false
+  # NOTE: version is derived from git tags by setuptools-scm; there is no longer
+  # a pyproject↔package version-check hook (the tag IS the version). See
+  # CONTRIBUTING.md → "Releases".
 
   # Ruff: lint + format (covers pyflakes, pycodestyle, isort, pyupgrade, security-S)
   - repo: https://github.com/astral-sh/ruff-pre-commit
