@@ -69,7 +69,7 @@ dev = [
 ]
 # Local LLM via Ollama (no API key required)
 local = [
-    "langchain-ollama>=0.2.0",
+    "langchain-ollama>=1.1.0",
 ]
 # GitHub Models provider — free for GitHub-authenticated users.
 # Uses langchain-openai with a custom base_url + GITHUB_TOKEN as the API key.
@@ -86,7 +86,7 @@ rules = [
 ]
 # Everything.
 all = [
-    "langchain-ollama>=0.2.0",
+    "langchain-ollama>=1.1.0",
     "mcp>=1.27.1",
     "checkov>=3.0.0,<4.0.0",
 ]
