@@ -1,8 +1,8 @@
 # IaC Scanner - Python CLI
 click>=8.3.3
-langchain>=0.3.0
-langchain-openai>=0.2.0
-langchain-anthropic>=0.2.0
-langchain-community>=0.3.0
-langchain-core>=0.3.0
+langchain>=0.3.30
+langchain-openai>=0.3.35
+langchain-anthropic>=0.3.22
+langchain-community>=0.4.1
+langchain-core>=0.3.86
 pydantic>=2.13.4
