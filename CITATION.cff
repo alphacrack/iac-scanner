@@ -1,0 +1,34 @@
+# Citation File Format — https://citation-file-format.github.io/
+# Reference this from academic papers, security bulletins, or SBOM tooling.
+# GitHub renders a "Cite this repository" button when a valid CITATION.cff
+# exists at the repo root.
+
+cff-version: 1.2.0
+message: "If you use iac-scanner in academic work or a security report, please cite it as below."
+title: "iac-scanner: AI-augmented Terraform and AWS CDK security scanner with LLM-generated fixes"
+abstract: >-
+  iac-scanner is a Python CLI and MCP server that scans Terraform (main.tf)
+  and AWS CDK (index.ts/index.js) Infrastructure-as-Code for security and
+  best-practice defects and generates fixed code via an LLM (OpenAI,
+  Anthropic, GitHub Models, or Ollama). It complements rule-based scanners
+  (Checkov, tfsec, KICS) rather than replacing them and offers a hybrid
+  mode that grounds LLM findings in Checkov's rule engine.
+type: software
+license: Apache-2.0
+url: "https://github.com/alphacrack/iac-scanner"
+repository-code: "https://github.com/alphacrack/iac-scanner"
+repository-artifact: "https://pypi.org/project/iac-scanner/"
+keywords:
+  - infrastructure-as-code
+  - terraform
+  - aws-cdk
+  - security
+  - sast
+  - devsecops
+  - llm
+  - langchain
+  - sarif
+authors:
+  - family-names: Jha
+    given-names: Bishwas
+    email: jha.bishwas@gmail.com
