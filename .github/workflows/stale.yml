@@ -1,0 +1,91 @@
+# Close issues and PRs that go quiet, so the backlog reflects reality.
+#
+# Behavior:
+#   - Issues waiting on reporter (`status:needs-info`) are stale after 14d,
+#     closed after another 7d, then labeled `status:invalid`.
+#   - Other issues are stale after 90d, closed after another 30d. Any comment
+#     removes the stale label — a "still relevant" comment is enough to keep
+#     it open.
+#   - PRs are stale after 60d, closed after another 21d. Draft PRs are exempt.
+#   - Bug reports (`type:bug`), priority-high/critical, security, `help wanted`,
+#     `good first issue`, `oss-collab`, and anything on a milestone are never
+#     marked stale.
+
+name: Stale issues and PRs
+
+on:
+  schedule:
+    - cron: "42 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Sweep stale
+    runs-on: ubuntu-latest
+    steps:
+      # Issues waiting on reporter — short timer.
+      - name: Needs-info sweep
+        uses: actions/stale@v9
+        with:
+          only-issue-labels: "status:needs-info"
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+          stale-issue-label: "status:invalid"
+          stale-issue-message: >
+            This issue was flagged `status:needs-info` and has not received a
+            response in two weeks. Marking as stale — if the requested detail
+            arrives it will be re-triaged; otherwise it will close in 7 days.
+            No offense meant, this just keeps the queue accurate.
+          close-issue-message: >
+            Closed for lack of follow-up. Please re-open with the requested
+            detail if the problem is still occurring.
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+
+      # General queue.
+      - name: General sweep
+        uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 90
+          days-before-issue-close: 30
+          days-before-pr-stale: 60
+          days-before-pr-close: 21
+          exempt-issue-labels: >-
+            type:bug,
+            priority:critical,
+            priority:high,
+            type:security,
+            help wanted,
+            good first issue,
+            oss-collab,
+            status:in-progress,
+            status:blocked
+          exempt-pr-labels: >-
+            priority:critical,
+            priority:high,
+            type:security,
+            oss-collab
+          exempt-all-milestones: true
+          exempt-draft-pr: true
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          stale-issue-message: >
+            No activity on this issue in the last 90 days. Marking it as
+            stale — comment or link a PR to keep it open. Otherwise it will
+            close in 30 days. Closing is not "wontfix", it's just archiving —
+            re-open freely if it becomes relevant.
+          close-issue-message: >
+            Closed after 30 days of inactivity following the stale mark. If
+            this is still an active problem, please re-open with a fresh
+            reproduction and any new context. Thanks for your patience.
+          stale-pr-message: >
+            No activity on this PR in the last 60 days. Marking it as stale.
+            If you are still working on it, a comment or a rebase will keep
+            it open. Otherwise it will close in 21 days.
+          close-pr-message: >
+            Closed after 21 days of inactivity. Re-open when ready to
+            continue — the review picks up wherever you left off.

@@ -1,0 +1,27 @@
+title: "[Q] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Usage questions, "which provider should I use for X?", "why does the fix look like Y?" — all belong here.
+
+        If your question is a defect (something is broken), please open a [Bug report](https://github.com/alphacrack/iac-scanner/issues/new?template=bug_report.yml) instead — bugs get tracked and fixed; questions get answered.
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to do?
+      description: The end goal, not just the immediate blocker. Helps us suggest the right approach even if your first attempt is unrelated.
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What have you tried?
+      description: Commands run, docs skimmed, error output. Even "nothing yet, I don't know where to start" is useful.
+  - type: input
+    id: version
+    attributes:
+      label: iac-scanner version
+      description: "`iac-scan --version`"
+      placeholder: "0.5.0"

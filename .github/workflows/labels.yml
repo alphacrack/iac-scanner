@@ -1,0 +1,39 @@
+# Sync GitHub Issue labels from `.github/labels.yml` — that file is the single
+# source of truth; do NOT edit labels in the GitHub UI.
+#
+# Runs on every push to main that touches labels.yml (or the workflow itself),
+# and can also be triggered manually. `delete-other-labels: true` deletes
+# anything on the repo that is not in labels.yml — this is intentional. If a
+# stale label is in active use, add it back to labels.yml before running.
+
+name: Sync labels
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/labels.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    name: Sync from labels.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Apply label config
+        uses: EndBug/label-sync@v2
+        with:
+          config-file: .github/labels.yml
+          # Rename via `aliases:` in labels.yml. Delete anything not in the
+          # config to keep the taxonomy authoritative.
+          delete-other-labels: true
+          # Dry-run first if you want: change to `false` and inspect the
+          # workflow log before enabling.
+          dry-run: false
