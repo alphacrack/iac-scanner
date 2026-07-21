@@ -82,13 +82,13 @@ mcp = [
 ]
 # Rule-engine hybrid mode — Checkov pre-pass + LLM augment + post-fix verification.
 rules = [
-    "checkov>=3.0.0,<4.0.0",
+    "checkov>=3.3.8,<4.0.0",
 ]
 # Everything.
 all = [
     "langchain-ollama>=0.2.0",
     "mcp>=1.27.1",
-    "checkov>=3.0.0,<4.0.0",
+    "checkov>=3.3.8,<4.0.0",
 ]
 
 [project.scripts]
