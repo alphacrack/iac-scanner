@@ -1,0 +1,71 @@
+name: Feature request
+description: Propose a new capability, flag, IaC type, or output format for iac-scanner.
+title: "[Feature] "
+labels: ["type:feature", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Feature requests are welcome — the ones that get implemented fastest are those with (a) a clear user problem, (b) a proposed shape, and (c) an appreciation for the trade-off.
+
+        For open-ended "would this be interesting?" questions, [Discussions](https://github.com/alphacrack/iac-scanner/discussions) is often a better place to start.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched [existing issues](https://github.com/alphacrack/iac-scanner/issues?q=is%3Aissue) and this is not already tracked.
+          required: true
+        - label: I read the [Roadmap](https://github.com/alphacrack/iac-scanner/blob/main/CHANGELOG.md#roadmap) and this isn't already planned.
+          required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that iac-scanner makes harder than it should?
+      placeholder: "As a security engineer, I want to X because currently I have to Y ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: A concrete shape — new flag, new output field, new provider, new IaC type. Sketching CLI usage or a code snippet is welcome.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, workarounds, or existing tools that partially address this.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which subsystem?
+      description: Best guess — maintainers will refine on triage.
+      options:
+        - CLI / entry points
+        - Scanners (Terraform / CDK / new IaC type)
+        - LLM providers
+        - Orchestration (analysis + fix pipeline)
+        - Rule engines (Checkov / cdk-nag / new engine)
+        - Cache
+        - Cost / budget
+        - SARIF / other output formats
+        - MCP server
+        - Documentation / examples
+        - Other / not sure
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you offering to help?
+      options:
+        - label: I would be willing to open a PR for this.
+        - label: I would help review a PR by someone else.
