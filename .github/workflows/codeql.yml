@@ -24,11 +24,12 @@ jobs:
     permissions:
       security-events: write
       packages: read
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["python"]
+    # Deliberately no `strategy.matrix` — the workflow only analyzes one
+    # language today. Previously a single-element matrix caused GitHub to
+    # render the check as "Analyze (python) (python)" (matrix name appended
+    # to the job name), which then had to be encoded verbatim in branch
+    # protection. If a second language is added, re-introduce a matrix and
+    # change `name:` above to just "Analyze" so the render is `Analyze (foo)`.
 
     steps:
       - uses: actions/checkout@v7
@@ -36,7 +37,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
+          languages: python
           queries: +security-and-quality
 
       - name: Autobuild
@@ -45,4 +46,4 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:python"
