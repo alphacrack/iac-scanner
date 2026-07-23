@@ -19,7 +19,7 @@ jobs:
     name: Lint (ruff)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -35,7 +35,7 @@ jobs:
     name: Type check (mypy)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -56,7 +56,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -94,7 +94,7 @@ jobs:
     name: Smoke test (CLI --scan-only)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -125,7 +125,7 @@ jobs:
     name: Extensions — iac-scanner-cdk-nag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test, smoke, test-extensions]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # setuptools-scm needs the full git history to derive the version.
           fetch-depth: 0
