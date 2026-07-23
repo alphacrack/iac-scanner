@@ -19,7 +19,7 @@ jobs:
     name: Build distributions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # setuptools-scm derives the version from git tags. Without full
           # history (and unshallowed fetch), it falls back to fallback_version
