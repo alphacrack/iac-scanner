@@ -22,7 +22,7 @@ jobs:
     name: SAST (bandit, ruff-S)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -40,7 +40,7 @@ jobs:
     name: Dependency audit (pip-audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
@@ -60,7 +60,7 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Full history so gitleaks can scan all commits, not just the HEAD
           fetch-depth: 0
@@ -78,7 +78,7 @@ jobs:
     name: Self-scan (iac-scan on samples)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # setuptools-scm needs git history to derive the package version
       - uses: actions/setup-python@v6
