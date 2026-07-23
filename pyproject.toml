@@ -157,7 +157,10 @@ show_missing = true
 skip_covered = false
 
 [tool.mypy]
-python_version = "3.10"
+# Bumped to 3.12 to match the CI runtime and let mypy parse numpy>=2.4's
+# stubs (which use PEP 695 `type X = ...` syntax, only valid on 3.12+).
+# Runtime code stays 3.10-compatible — pytest still covers 3.10/3.11/3.12/3.13.
+python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -175,6 +178,15 @@ module = [
     "mcp.*",
 ]
 ignore_missing_imports = true
+
+# numpy>=2.4 ships .pyi stubs that use PEP 695 `type X = ...` syntax; mypy
+# targeting python_version = "3.10" cannot parse it. numpy is a transitive
+# dep of langchain-community + checkov; we do not import it directly. Skip
+# following the imports so the syntax error can't reach us.
+[[tool.mypy.overrides]]
+module = ["numpy.*"]
+follow_imports = "skip"
+ignore_errors = true
 
 [tool.bandit]
 exclude_dirs = ["tests", "samples", "docs"]

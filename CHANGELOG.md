@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-17
+
 ### Changed
 
 - **Versioning is now tag-driven via [setuptools-scm](https://setuptools-scm.readthedocs.io/).** The package version is derived from the latest signed annotated `vX.Y.Z` git tag. `pyproject.toml` no longer has a hardcoded `version = ...`; it uses `dynamic = ["version"]`. `iac_scanner.__version__` reads from `_version.py` (written at build time by setuptools-scm) and falls back to `importlib.metadata` for installed wheels.
@@ -22,24 +24,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - **`SUPPORT.md`** — routes users to bug/feature/security/discussion channels.
 - **`scripts/apply_branch_protection.sh`** — `gh`-based, idempotent applier for the `main`-branch protection rules described in `GOVERNANCE.md`. Run from any maintainer's machine.
 - **README badges:** Python versions, CodeQL, OpenSSF Scorecard, DCO.
-
-### Previously planned (still tracked)
-
 - **Rule-engine plugin discovery.** Third-party rule engines can now register themselves via the `iac_scanner.rule_engines` entry-point group. Install e.g. [`iac-scanner-cdk-nag`](packages/iac-scanner-cdk-nag/) and the `cdk-nag` engine is auto-discovered — no core changes required. Core engine dispatcher in `src/iac_scanner/rules/engine.py`. New `available_engines()` helper lists every usable engine (built-in + plugins).
 - **Companion package: `iac-scanner-cdk-nag`** (`packages/iac-scanner-cdk-nag/`). Independent PyPI package that shells out to `cdk synth`, parses AwsSolutions / HIPAA / NIST-800-53 / PCI-DSS nag annotations, and returns them as iac-scanner Findings. Released via a dedicated `publish-nag-pypi.yml` workflow on `nag-v*` tags.
 - **PEP 561 `py.typed` marker** on `iac_scanner` — downstream packages (like the nag extension) and mypy in other repos now recognize this package as fully typed.
 
-### Planned for 1.0.0
+### Dependencies
 
-- Pluggable LLM providers: OpenAI, Anthropic, GitHub Models (keyless for GitHub users), Ollama (local).
-- MCP server mode (`iac-scan-mcp`): expose iac-scanner as tools to Claude Desktop / Cursor / Continue.dev — host app supplies the LLM, no API key required by iac-scanner.
-- Checkov hybrid mode: rule-engine pre-pass + LLM augment + post-fix verification.
-- SARIF 2.1.0 output format for GitHub Code Scanning / GitLab Security Dashboard.
-- Content-addressed response cache with configurable TTL.
-- Cost guardrail via `tiktoken` preflight + `--max-spend` flag.
-- Prompt-injection mitigations: XML input fencing, secret redaction, default skip-list.
-- Structured LLM output with Pydantic schemas (replaces regex-based JSON extraction).
-- 80% test coverage target with mocked-LLM integration tests.
+This release rolls up a batch of Dependabot upgrades. None change runtime behavior, but consumers pinning by upper bound should be aware:
+
+- `click>=8.3.3` (was `>=8.1.0`)
+- `pydantic>=2.13.4` (was `>=2.0.0`)
+- `mcp>=1.27.1` (`[mcp]` extra; was `>=1.0.0`)
+- Dev: `pytest>=9.0.3`, `respx>=0.23.1`, `bandit>=1.9.4`, `pip-audit>=2.10.0`, `build>=1.5.0`
+- Build: `setuptools>=82.0.1` + `setuptools-scm>=8` (new)
+- GitHub Actions majors: `actions/checkout@v6`, `actions/setup-python@v6`, `actions/upload-artifact@v7`, `actions/download-artifact@v8`, `sigstore/gh-action-sigstore-python@v3.3.0`
 
 ## [0.4.0] - 2026-04-18
 
@@ -115,3 +113,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Added
 
 - Initial release: Terraform and CDK scanners, LangChain orchestration, report and fixed code output.
+
+---
+
+## Roadmap
+
+Items below are planned but not scheduled. They are intentionally kept out of `[Unreleased]` so they don't end up in release notes by accident. Once a roadmap item lands in a PR, move it to the matching subsection (`Added` / `Changed` / `Fixed`) under `[Unreleased]`.
+
+### Planned for 1.0.0
+
+- Pluggable LLM providers: OpenAI, Anthropic, GitHub Models (keyless for GitHub users), Ollama (local).
+- MCP server mode (`iac-scan-mcp`): expose iac-scanner as tools to Claude Desktop / Cursor / Continue.dev — host app supplies the LLM, no API key required by iac-scanner.
+- Checkov hybrid mode: rule-engine pre-pass + LLM augment + post-fix verification.
+- SARIF 2.1.0 output format for GitHub Code Scanning / GitLab Security Dashboard.
+- Content-addressed response cache with configurable TTL.
+- Cost guardrail via `tiktoken` preflight + `--max-spend` flag.
+- Prompt-injection mitigations: XML input fencing, secret redaction, default skip-list.
+- Structured LLM output with Pydantic schemas (replaces regex-based JSON extraction).
+- 80% test coverage target with mocked-LLM integration tests.

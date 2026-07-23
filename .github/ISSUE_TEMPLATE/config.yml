@@ -1,8 +1,23 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Security vulnerability
+  - name: Security vulnerability (private)
     url: https://github.com/alphacrack/iac-scanner/security/advisories/new
-    about: Please report security vulnerabilities privately via GitHub Security Advisories instead of a public issue. See SECURITY.md for the full threat model and disclosure guidelines.
-  - name: Discussion / question
+    about: |
+      Report vulnerabilities privately via GitHub Security Advisories.
+      Do NOT open a public issue for security problems. See SECURITY.md for
+      the threat model and disclosure timeline.
+  - name: Usage question or open-ended discussion
     url: https://github.com/alphacrack/iac-scanner/discussions
-    about: For usage questions and open-ended discussion, please use Discussions instead of opening an issue.
+    about: |
+      For "how do I…?", "should I use this for X?", or roadmap discussion,
+      Discussions is a better fit than Issues. Faster response too.
+  - name: Documentation / tutorial
+    url: https://bishwasjha.github.io/iac-scanner/
+    about: |
+      Quickstart, tutorial, and blog. Skim these before filing — the answer
+      may already be there.
+  - name: Contributing guide
+    url: https://github.com/alphacrack/iac-scanner/blob/main/CONTRIBUTING.md
+    about: |
+      Dev setup, test strategy, PR workflow, release process. Read this
+      before opening a PR against `development`.

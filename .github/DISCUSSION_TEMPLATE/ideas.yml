@@ -1,0 +1,29 @@
+title: "[Idea] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas live here — half-formed, unconstrained. Not every idea becomes an issue or a PR, and that's fine.
+
+        Better fits:
+        - Concrete bug → open an [Issue](https://github.com/alphacrack/iac-scanner/issues/new/choose).
+        - Fully-scoped feature you're ready to build → open an Issue with the "Feature request" template.
+        - "How do I…?" → Q&A discussion category.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What are you thinking about? Rough is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why now?
+      description: What made you think of this? What would it unlock?
+  - type: textarea
+    id: cost
+    attributes:
+      label: Rough cost / trade-off
+      description: If you have a sense of what it would cost (new deps, prompt changes, breaking?) — mention it. If not, no need.

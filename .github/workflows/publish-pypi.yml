@@ -44,8 +44,15 @@ jobs:
       - name: Verify distributions
         run: twine check dist/*
       - name: Generate CycloneDX SBOM
+        # The SBOM describes what an end user gets from `pip install iac-scanner`
+        # — base install only, no optional extras. Installing `.[all]` here
+        # pulled in `checkov`, which pins `cyclonedx-python-lib<8` and
+        # downgraded the lib `cyclonedx-bom` needs (>=11) — breaking the SBOM
+        # generator with `ModuleNotFoundError: cyclonedx.builder`. Extras
+        # ([local], [mcp], [rules], [all]) are opt-in and consumers get their
+        # own dep tree when they install them.
         run: |
-          pip install -e ".[all]"
+          pip install -e "."
           cyclonedx-py environment --output-format json --output-file sbom.cdx.json
       - uses: actions/upload-artifact@v7
         with:
