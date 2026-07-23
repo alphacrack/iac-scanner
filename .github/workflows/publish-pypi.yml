@@ -34,7 +34,7 @@ jobs:
             echo "::error::Build will not be a clean release version (got '$v'). The release tag is probably missing or unreachable from this commit."
             exit 1
           fi
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
