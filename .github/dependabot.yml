@@ -22,16 +22,14 @@ updates:
           - patch
           - minor
     ignore:
-      # LangChain 0.4.x requires a coordinated port — handled manually.
-      - dependency-name: langchain
-        update-types: [version-update:semver-major]
-      - dependency-name: langchain-core
-        update-types: [version-update:semver-major]
-      - dependency-name: langchain-openai
-        update-types: [version-update:semver-major]
-      - dependency-name: langchain-anthropic
-        update-types: [version-update:semver-major]
-      - dependency-name: langchain-community
+      # LangChain-family major bumps require a coordinated port; the LLMClient
+      # abstraction in src/iac_scanner/llm/providers.py is where that lands.
+      # Wildcard "langchain*" covers current and future family members
+      # (langchain-google-*, langchain-xai, langchain-mistralai, etc.) so we
+      # don't have to enumerate one-by-one. History: v0.5.0 had to close
+      # #10 (langchain group major) and #23 (langchain-ollama 0.2→1.1) because
+      # the previous per-package ignore list didn't cover langchain-ollama.
+      - dependency-name: "langchain*"
         update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions

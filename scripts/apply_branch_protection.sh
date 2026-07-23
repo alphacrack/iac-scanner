@@ -23,6 +23,12 @@ echo "Applying branch protection to ${REPO}@${BRANCH}"
 
 # Required status check contexts. These must match the `name:` of jobs in your
 # workflows. If you rename a job, update both here and the workflow.
+#
+# History: "Analyze (python)" was previously "Analyze (python) (python)"
+# because codeql.yml used a single-element matrix that appended `(python)`
+# to the job name. codeql.yml was normalized in v0.5.1 — repos that ran
+# this script before that change need to re-run it to pick up the corrected
+# context, otherwise merges will block waiting on the stale check name.
 read -r -d '' PAYLOAD <<JSON || true
 {
   "required_status_checks": {

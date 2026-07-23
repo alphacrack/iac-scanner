@@ -105,11 +105,21 @@ jobs:
             ./dist/*.whl
             ./sbom.cdx.json
       - name: Attach signed artifacts + SBOM to the GitHub Release
-        if: github.event_name == 'release'
+        # Runs on `release: published` (normal tag-triggered flow) AND on
+        # `workflow_dispatch` when dispatched against a v* tag ref (manual
+        # re-publish). The previous gate was `event_name == 'release'` only —
+        # v0.5.0's manual re-dispatch skipped this step, leaving the Release
+        # with no sigstore bundles until they were attached by hand.
+        if: >-
+          github.event_name == 'release' ||
+          (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))
         env:
           GH_TOKEN: ${{ github.token }}
+          # `github.event.release.tag_name` exists on release events;
+          # `github.ref_name` (e.g. "v0.5.1") is the tag on workflow_dispatch.
+          TAG_NAME: ${{ github.event.release.tag_name || github.ref_name }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
+          gh release upload "$TAG_NAME" \
             ./dist/*.tar.gz ./dist/*.whl \
             ./dist/*.sigstore \
             ./sbom.cdx.json \
