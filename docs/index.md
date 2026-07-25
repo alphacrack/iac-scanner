@@ -13,5 +13,7 @@ Scan **Terraform** and **AWS CDK** Infrastructure-as-Code, get a security and be
 
 ## Blog and tutorial
 
+- [**MCP server setup**]({{ site.baseurl }}/mcp-setup/) — connect Claude Desktop, Cursor, or Continue
+
 - [**Blog**]({{ site.baseurl }}/blog) – posts and release notes
 - [**Tutorial**]({{ site.baseurl }}/tutorial) – install, scan Terraform/CDK, read the report, use fixed code

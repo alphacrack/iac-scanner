@@ -41,6 +41,9 @@ pip install iac-scanner[mcp]
 # Then in Claude: "Scan the Terraform in ~/work/infra"
 ```
 
+See the [MCP server setup guide](docs/mcp-setup.md) for Claude Desktop, Cursor,
+Continue, verification, and troubleshooting.
+
 ### OpenAI / Anthropic (bring your own key)
 
 ```bash
