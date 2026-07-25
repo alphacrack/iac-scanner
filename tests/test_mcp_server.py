@@ -9,7 +9,34 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from iac_scanner.mcp_server import _tool_run_rule_engine, _tool_scan_iac_path
+import pytest
+
+from iac_scanner.mcp_server import _tool_run_rule_engine, _tool_scan_iac_path, main
+
+
+def test_main_prints_help_without_starting_server(capsys: pytest.CaptureFixture[str]) -> None:
+    main(["--help"])
+
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert captured.out == (
+        "Usage: iac-scan-mcp [--help]\n"
+        "\n"
+        "Start the iac-scanner MCP server over stdio.\n"
+        "\n"
+        "Options:\n"
+        "  -h, --help  Show this help message and exit.\n"
+    )
+
+
+def test_main_rejects_unknown_arguments(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit, match="2"):
+        main(["--version"])
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "unexpected argument: --version" in captured.err
+
 
 SAMPLES = Path(__file__).parent.parent / "samples"
 

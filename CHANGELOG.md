@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Added
 
+- End-to-end MCP server setup guide for Claude Desktop, Cursor, and Continue, plus `iac-scan-mcp --help`.
+
 - **Rule-engine plugin discovery.** Third-party rule engines can now register themselves via the `iac_scanner.rule_engines` entry-point group. Install e.g. [`iac-scanner-cdk-nag`](packages/iac-scanner-cdk-nag/) and the `cdk-nag` engine is auto-discovered — no core changes required. Core engine dispatcher in `src/iac_scanner/rules/engine.py`. New `available_engines()` helper lists every usable engine (built-in + plugins).
 - **Companion package: `iac-scanner-cdk-nag`** (`packages/iac-scanner-cdk-nag/`). Independent PyPI package that shells out to `cdk synth`, parses AwsSolutions / HIPAA / NIST-800-53 / PCI-DSS nag annotations, and returns them as iac-scanner Findings. Released via a dedicated `publish-nag-pypi.yml` workflow on `nag-v*` tags.
 - **PEP 561 `py.typed` marker** on `iac_scanner` — downstream packages (like the nag extension) and mypy in other repos now recognize this package as fully typed.
