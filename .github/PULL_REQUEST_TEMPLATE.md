@@ -1,7 +1,7 @@
 <!--
 Thanks for the PR! A quick guide:
 
-- PRs target `development`, not `main`. See CONTRIBUTING.md.
+- PRs target `main` (the single trunk). Branch from an up-to-date `main`. See CONTRIBUTING.md.
 - Sign off commits with `git commit -s` (DCO required).
 - Update CHANGELOG.md under `## [Unreleased]` for any user-visible change.
 - The `.github/labeler.yml` will auto-label `area:*` based on paths you
@@ -34,7 +34,7 @@ Preferred order: failing repro pre-fix → passing test post-fix → any manual 
 
 ## Checklist
 
-- [ ] Targets `development` (not `main`).
+- [ ] Targets `main`, and the branch is rebased on current `main` (diff shows only your files).
 - [ ] Commits are DCO-signed (`git commit -s`).
 - [ ] `ruff check src/ tests/` and `ruff format --check src/ tests/` clean.
 - [ ] `mypy src/iac_scanner` clean (CI is `--strict`).

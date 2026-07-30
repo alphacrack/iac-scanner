@@ -15,10 +15,20 @@ See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1). Report 
 ## How to contribute
 
 1. **Open an issue** (bug or feature) so we can align before you invest time.
-2. **Fork the repo** and create a branch from `development`: `git checkout -b fix/your-change`.
+2. **Fork the repo** and create a branch from **`main`** (make sure your fork is up to date first — see below): `git checkout -b fix/your-change`.
 3. **Make your changes** and run locally (see [Development setup](#development-setup)).
-4. **Push and open a Pull Request** targeting `development`. CI must pass.
+4. **Push and open a Pull Request** targeting **`main`**. CI must pass.
 5. **Sign off** commits with `-s` so DCO is satisfied (`git commit -s -m "..."`).
+
+> **`main` is the single trunk.** There is no long-lived `development` branch — everything (features, fixes, releases) lands on `main`, which is protected (required CI + review). Before branching, sync your fork so you don't start from a stale base:
+>
+> ```bash
+> git remote add upstream https://github.com/alphacrack/iac-scanner.git   # one-time
+> git fetch upstream
+> git checkout -b fix/your-change upstream/main
+> ```
+>
+> If a PR ever shows dozens of unrelated files, your branch was cut from an old base — rebase it: `git fetch upstream && git rebase upstream/main && git push --force-with-lease`.
 
 ---
 
@@ -93,7 +103,7 @@ The project blog and tutorial live in [docs/](docs/) and are published via GitHu
 We use **Semantic Versioning** (`vMAJOR.MINOR.PATCH`). Tags are the source of truth — there are no version bumps in source files to forget.
 
 1. Make sure every user-visible change is in `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
-2. From a clean `main` (or `development` if that is the release branch), run:
+2. From a clean, up-to-date `main`, run:
    ```bash
    make release-patch     # or release-minor / release-major
    # preview first:
