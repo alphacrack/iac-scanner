@@ -29,7 +29,7 @@ jobs:
     steps:
       # Issues waiting on reporter — short timer.
       - name: Needs-info sweep
-        uses: actions/stale@v9
+        uses: actions/stale@v11
         with:
           only-issue-labels: "status:needs-info"
           days-before-issue-stale: 14
@@ -48,7 +48,7 @@ jobs:
 
       # General queue.
       - name: General sweep
-        uses: actions/stale@v9
+        uses: actions/stale@v11
         with:
           days-before-issue-stale: 90
           days-before-issue-close: 30
