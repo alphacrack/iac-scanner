@@ -1,7 +1,9 @@
 # IaC Scanner
 
 [![PyPI version](https://img.shields.io/pypi/v/iac-scanner)](https://pypi.org/project/iac-scanner/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/iac-scanner)](https://pypi.org/project/iac-scanner/)
 [![Python versions](https://img.shields.io/pypi/pyversions/iac-scanner)](https://pypi.org/project/iac-scanner/)
+[![Python implementation](https://img.shields.io/pypi/implementation/iac-scanner)](https://pypi.org/project/iac-scanner/)
 [![CI](https://github.com/alphacrack/iac-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/alphacrack/iac-scanner/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/alphacrack/iac-scanner/actions/workflows/codeql.yml/badge.svg)](https://github.com/alphacrack/iac-scanner/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/alphacrack/iac-scanner/badge)](https://securityscorecards.dev/viewer/?uri=github.com/alphacrack/iac-scanner)
