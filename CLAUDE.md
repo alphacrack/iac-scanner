@@ -73,7 +73,7 @@ Content-addressed (SHA-256 over `call_kind + raw_content + provider + model + pr
 ## Conventions worth knowing
 
 - **mypy is strict** (`disallow_untyped_defs`, `warn_unused_ignores`, etc.). CI hard-fails on any issue. Annotate fully.
-- **PRs target `development`**, not `main`. Sign off with `git commit -s` (DCO required).
+- **`main` is the single trunk.** PRs target `main` (protected: required CI + review); there is no long-lived `development` branch. Sign off with `git commit -s` (DCO required).
 - **Test markers** must be one of `smoke`, `integration`, `e2e` (declared in `pyproject.toml`; `--strict-markers` is on). `e2e` only runs in the nightly workflow.
 - **Mocking the LLM**: use `FakeLLMClient` from `tests/conftest.py` and the `fake_analysis_client_*` / `fake_fix_client_*` fixtures. Do not hit real providers in unit tests. `isolate_cache_dir` and `clear_llm_env` fixtures are autouse, so tests get a clean cache + scrubbed env automatically.
 - **Bandit** skips `B101` (assert in pytest) and `B310` (urlopen — guarded upstream). Don't broaden the skiplist without justification.
