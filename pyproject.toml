@@ -96,11 +96,11 @@ iac-scan = "iac_scanner.cli:main"
 iac-scan-mcp = "iac_scanner.mcp_server:main"
 
 [project.urls]
-Homepage = "https://github.com/bishwasjha/iac-scanner"
-Repository = "https://github.com/bishwasjha/iac-scanner"
-Documentation = "https://bishwasjha.github.io/iac-scanner/"
-Issues = "https://github.com/bishwasjha/iac-scanner/issues"
-Changelog = "https://github.com/bishwasjha/iac-scanner/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/alphacrack/iac-scanner"
+Repository = "https://github.com/alphacrack/iac-scanner"
+Documentation = "https://alphacrack.github.io/iac-scanner/"
+Issues = "https://github.com/alphacrack/iac-scanner/issues"
+Changelog = "https://github.com/alphacrack/iac-scanner/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
