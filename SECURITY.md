@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-| Version | Supported |
-| ------- | --------- |
-| 0.4.x   | Yes (current) |
-| 0.3.x   | Security fixes only, until 2026-07-01 |
-| < 0.3   | No |
+| Version | Supported             |
+| ------- | --------------------- |
+| 0.5.x   | Yes (current)         |
+| 0.4.x   | Security fixes only   |
+| < 0.4   | No                    |
 
 ## Reporting a Vulnerability
 
