@@ -64,6 +64,37 @@ def test_cli_scan_only_cdk(tmp_path: Path) -> None:
 
 
 @pytest.mark.smoke
+def test_cli_scan_only_terraform_clean_zero_findings(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out-tf-clean"
+    result = CliRunner().invoke(
+        main,
+        ["scan", str(SAMPLES / "tf-clean"), "-o", str(out_dir), "--scan-only"],
+    )
+    assert result.exit_code == 0, result.output
+    report = out_dir / "scan-report.json"
+    assert report.exists()
+    data = json.loads(report.read_text())
+    assert data["iac_type"] == "terraform"
+    assert "main.tf" in str(data["entry_path"])
+    assert data["findings"] == []
+
+
+@pytest.mark.smoke
+def test_cli_scan_only_cdk_clean_zero_findings(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out-cdk-clean"
+    result = CliRunner().invoke(
+        main,
+        ["scan", str(SAMPLES / "cdk-clean"), "-o", str(out_dir), "--scan-only"],
+    )
+    assert result.exit_code == 0, result.output
+    report = out_dir / "scan-report.json"
+    assert report.exists()
+    data = json.loads(report.read_text())
+    assert data["iac_type"] == "cdk"
+    assert data["findings"] == []
+
+
+@pytest.mark.smoke
 def test_cli_scan_nonexistent_path_exits_nonzero(tmp_path: Path) -> None:
     result = CliRunner().invoke(
         main,
