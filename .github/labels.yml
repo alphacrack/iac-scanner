@@ -1,0 +1,203 @@
+# Label taxonomy for iac-scanner. Source of truth — do NOT edit labels in the UI.
+#
+# The `labels.yml` GitHub Actions workflow syncs this file on push to main:
+#   - Missing labels: created.
+#   - Existing labels with same name: updated (color / description).
+#   - Renames: rename via the `aliases:` list — the action moves issues, then
+#     drops the old name.
+# GitHub's default labels (bug, enhancement, etc.) are replaced by the
+# structured taxonomy below. Dependabot uses `dependencies` /
+# `github-actions` — keep those names verbatim, that's what it looks for.
+
+# ------------------------------------------------------------------------
+# Type — what kind of change / issue
+# ------------------------------------------------------------------------
+- name: "type:bug"
+  color: "d73a4a"
+  description: "Something isn't working correctly"
+  aliases: ["bug"]
+
+- name: "type:feature"
+  color: "a2eeef"
+  description: "New user-facing capability"
+
+- name: "type:enhancement"
+  color: "a2eeef"
+  description: "Improvement to existing behavior"
+  aliases: ["enhancement"]
+
+- name: "type:docs"
+  color: "0075ca"
+  description: "Documentation, tutorial, or blog change"
+  aliases: ["documentation"]
+
+- name: "type:refactor"
+  color: "c5def5"
+  description: "Internal restructuring, no user-facing change"
+
+- name: "type:test"
+  color: "fef2c0"
+  description: "Test-only change or gap"
+
+- name: "type:chore"
+  color: "e5e5e5"
+  description: "Housekeeping, tooling, CI, or repo config"
+
+- name: "type:question"
+  color: "d876e3"
+  description: "Usage question that could not go to Discussions"
+  aliases: ["question"]
+
+- name: "type:security"
+  color: "b60205"
+  description: "Security-relevant defect or hardening"
+
+# ------------------------------------------------------------------------
+# Priority — how urgently this needs attention
+# ------------------------------------------------------------------------
+- name: "priority:critical"
+  color: "b60205"
+  description: "Data loss, publish-blocking, or actively exploited"
+
+- name: "priority:high"
+  color: "d93f0b"
+  description: "Blocks a supported use case"
+
+- name: "priority:medium"
+  color: "fbca04"
+  description: "Should be fixed but has a workaround"
+
+- name: "priority:low"
+  color: "c2e0c6"
+  description: "Nice-to-have"
+
+# ------------------------------------------------------------------------
+# Status — where an issue is in its lifecycle
+# ------------------------------------------------------------------------
+- name: "status:triage"
+  color: "fbca04"
+  description: "Awaiting maintainer review / classification"
+
+- name: "status:needs-info"
+  color: "e99695"
+  description: "Waiting for reporter to provide more detail"
+
+- name: "status:blocked"
+  color: "8b0000"
+  description: "Blocked on an upstream or another issue"
+
+- name: "status:in-progress"
+  color: "0e8a16"
+  description: "Actively being worked on"
+
+- name: "status:wontfix"
+  color: "ffffff"
+  description: "Working as intended / out of scope"
+  aliases: ["wontfix"]
+
+- name: "status:duplicate"
+  color: "cfd3d7"
+  description: "Duplicate of another issue"
+  aliases: ["duplicate"]
+
+- name: "status:invalid"
+  color: "e4e669"
+  description: "Not actionable as reported"
+  aliases: ["invalid"]
+
+# ------------------------------------------------------------------------
+# Contributor onboarding
+# ------------------------------------------------------------------------
+- name: "good first issue"
+  color: "7057ff"
+  description: "Scoped, well-understood, low prerequisite — pick this up"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Maintainers welcome a PR here"
+
+# ------------------------------------------------------------------------
+# Area — which subsystem an issue touches. Applied automatically by
+# `.github/labeler.yml` where the path is unambiguous.
+# ------------------------------------------------------------------------
+- name: "area:cli"
+  color: "5319e7"
+  description: "iac-scan CLI (click) / entry points"
+
+- name: "area:scanners"
+  color: "5319e7"
+  description: "Terraform / CDK scanners, filters, skip-list"
+
+- name: "area:llm"
+  color: "5319e7"
+  description: "LLM providers (OpenAI, Anthropic, GitHub Models, Ollama)"
+
+- name: "area:orchestration"
+  color: "5319e7"
+  description: "Analysis + fix pipeline, LangChain tasks, hybrid runner"
+
+- name: "area:rules"
+  color: "5319e7"
+  description: "Rule-engine plugins (Checkov, cdk-nag, discovery)"
+
+- name: "area:cache"
+  color: "5319e7"
+  description: "Content-addressed response cache"
+
+- name: "area:cost"
+  color: "5319e7"
+  description: "tiktoken preflight + budget enforcement"
+
+- name: "area:sarif"
+  color: "5319e7"
+  description: "SARIF 2.1.0 output"
+
+- name: "area:mcp"
+  color: "5319e7"
+  description: "iac-scan-mcp server for Claude Desktop / Cursor"
+
+- name: "area:ci"
+  color: "5319e7"
+  description: ".github/workflows, pre-commit, release automation"
+
+- name: "area:docs"
+  color: "5319e7"
+  description: "README, CONTRIBUTING, docs/ site, CHANGELOG"
+
+- name: "area:release"
+  color: "5319e7"
+  description: "release.py, publish-pypi.yml, tag flow, PyPI"
+
+# ------------------------------------------------------------------------
+# IaC type — which format the issue affects (applied manually)
+# ------------------------------------------------------------------------
+- name: "iac:terraform"
+  color: "844fba"
+  description: "Terraform (main.tf) scanning / fix output"
+
+- name: "iac:cdk"
+  color: "ff9900"
+  description: "AWS CDK (index.ts / index.js) scanning / fix output"
+
+# ------------------------------------------------------------------------
+# Special flags
+# ------------------------------------------------------------------------
+- name: "dependencies"
+  color: "0366d6"
+  description: "Runtime / dev dependency upgrade (Dependabot uses this name)"
+
+- name: "github-actions"
+  color: "000000"
+  description: "GitHub Actions bump (Dependabot uses this name)"
+
+- name: "regression"
+  color: "b60205"
+  description: "Broken behavior that used to work"
+
+- name: "breaking-change"
+  color: "ee0701"
+  description: "Removes or changes a supported API/CLI in an incompatible way"
+
+- name: "oss-collab"
+  color: "fbca04"
+  description: "Governance, community, licensing, contribution flow"

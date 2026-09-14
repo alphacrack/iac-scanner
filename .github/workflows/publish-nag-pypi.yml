@@ -43,8 +43,8 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -65,8 +65,8 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -80,11 +80,11 @@ jobs:
         run: |
           pip install -e .
           cyclonedx-py environment --output-format json --output-file sbom.cdx.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nag-dist
           path: packages/iac-scanner-cdk-nag/dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nag-sbom
           path: packages/iac-scanner-cdk-nag/sbom.cdx.json
@@ -101,7 +101,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: nag-dist
           path: dist/
@@ -121,16 +121,16 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: nag-dist
           path: dist/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: nag-sbom
           path: .
       - name: Sign with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        uses: sigstore/gh-action-sigstore-python@v3.5.0
         with:
           inputs: |
             ./dist/*.tar.gz

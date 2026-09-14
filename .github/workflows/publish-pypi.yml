@@ -19,8 +19,22 @@ jobs:
     name: Build distributions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+        with:
+          # setuptools-scm derives the version from git tags. Without full
+          # history (and unshallowed fetch), it falls back to fallback_version
+          # and the wheel filename will be "0.0.0+unknown" instead of "0.5.0".
+          fetch-depth: 0
+      - name: Verify setuptools-scm picks up a real tag version
+        run: |
+          pip install --upgrade setuptools-scm
+          v=$(python -c "from setuptools_scm import get_version; print(get_version(root='.'))")
+          echo "setuptools-scm version: $v"
+          if [[ "$v" == 0.0.0+unknown* || "$v" == *dev* ]]; then
+            echo "::error::Build will not be a clean release version (got '$v'). The release tag is probably missing or unreachable from this commit."
+            exit 1
+          fi
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -30,14 +44,21 @@ jobs:
       - name: Verify distributions
         run: twine check dist/*
       - name: Generate CycloneDX SBOM
+        # The SBOM describes what an end user gets from `pip install iac-scanner`
+        # — base install only, no optional extras. Installing `.[all]` here
+        # pulled in `checkov`, which pins `cyclonedx-python-lib<8` and
+        # downgraded the lib `cyclonedx-bom` needs (>=11) — breaking the SBOM
+        # generator with `ModuleNotFoundError: cyclonedx.builder`. Extras
+        # ([local], [mcp], [rules], [all]) are opt-in and consumers get their
+        # own dep tree when they install them.
         run: |
-          pip install -e ".[all]"
+          pip install -e "."
           cyclonedx-py environment --output-format json --output-file sbom.cdx.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.cdx.json
@@ -53,7 +74,7 @@ jobs:
       # Required for Trusted Publishing (OIDC)
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -68,27 +89,37 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sbom
           path: .
       - name: Sign with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        uses: sigstore/gh-action-sigstore-python@v3.5.0
         with:
           inputs: |
             ./dist/*.tar.gz
             ./dist/*.whl
             ./sbom.cdx.json
       - name: Attach signed artifacts + SBOM to the GitHub Release
-        if: github.event_name == 'release'
+        # Runs on `release: published` (normal tag-triggered flow) AND on
+        # `workflow_dispatch` when dispatched against a v* tag ref (manual
+        # re-publish). The previous gate was `event_name == 'release'` only —
+        # v0.5.0's manual re-dispatch skipped this step, leaving the Release
+        # with no sigstore bundles until they were attached by hand.
+        if: >-
+          github.event_name == 'release' ||
+          (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))
         env:
           GH_TOKEN: ${{ github.token }}
+          # `github.event.release.tag_name` exists on release events;
+          # `github.ref_name` (e.g. "v0.5.1") is the tag on workflow_dispatch.
+          TAG_NAME: ${{ github.event.release.tag_name || github.ref_name }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
+          gh release upload "$TAG_NAME" \
             ./dist/*.tar.gz ./dist/*.whl \
             ./dist/*.sigstore \
             ./sbom.cdx.json \

@@ -1,0 +1,102 @@
+# Path-based PR auto-labeler, applied by `.github/workflows/labeler.yml`.
+# Uses actions/labeler@v5's YAML schema (each rule is a list of `changed-files`
+# matchers). Labels must exist in `.github/labels.yml`.
+#
+# Rules of thumb:
+#   - Only auto-apply `area:*` and `dependencies` — labels a machine can
+#     infer from path with high confidence.
+#   - Do NOT auto-apply `type:*`, `priority:*`, `status:*`, `iac:*`, or
+#     `breaking-change` — those need human judgment.
+
+"area:cli":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/cli.py"
+
+"area:scanners":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/scanners/**"
+          - "src/iac_scanner/factory.py"
+          - "src/iac_scanner/models.py"
+
+"area:llm":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/llm/**"
+
+"area:orchestration":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/orchestration/**"
+
+"area:rules":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/rules/**"
+          - "packages/iac-scanner-cdk-nag/**"
+
+"area:cache":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/cache.py"
+
+"area:cost":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/cost.py"
+
+"area:sarif":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/output/sarif.py"
+
+"area:mcp":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/iac_scanner/mcp_server.py"
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".pre-commit-config.yaml"
+          - ".gitleaks.toml"
+          - "Makefile"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "GOVERNANCE.md"
+          - "MAINTAINERS.md"
+          - "SUPPORT.md"
+          - "CHANGELOG.md"
+          - "CLAUDE.md"
+          - "SECURITY.md"
+          - "CODE_OF_CONDUCT.md"
+          - "NOTICE"
+
+"area:release":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/release.py"
+          - "scripts/apply_branch_protection.sh"
+          - ".github/workflows/release.yml"
+          - ".github/workflows/publish-pypi.yml"
+          - ".github/workflows/publish-nag-pypi.yml"
+
+"type:test":
+  - changed-files:
+      - all-globs-to-all-files:
+          - "tests/**"
+          - "!src/**"
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "requirements.txt"
+          - "packages/**/pyproject.toml"

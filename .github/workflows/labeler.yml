@@ -1,0 +1,28 @@
+# Path-based PR labeler. Applies `area:*` and a couple of type/dependency
+# labels based on which files a PR touches (config: `.github/labeler.yml`).
+#
+# `pull_request_target` (rather than `pull_request`) so PRs from forks can be
+# labeled too. This is safe because the workflow does not check out or run
+# any PR-supplied code — it only inspects the changed-file list.
+
+name: PR labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  triage:
+    name: Auto-label by path
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          # Keep manually-added labels on the PR — only add missing ones.
+          sync-labels: false

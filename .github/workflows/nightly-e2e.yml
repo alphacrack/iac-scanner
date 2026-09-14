@@ -32,8 +32,8 @@ jobs:
       # Disable response cache so E2E genuinely hits the LLM
       IAC_NO_CACHE: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload E2E artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-${{ matrix.provider }}
           path: |

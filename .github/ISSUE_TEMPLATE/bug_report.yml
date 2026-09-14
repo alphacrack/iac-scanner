@@ -1,0 +1,108 @@
+name: Bug report
+description: Report a defect in iac-scanner — reproducible unexpected behavior, wrong output, or a crash.
+title: "[Bug] "
+labels: ["type:bug", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Reproducible reports make triage fast — if you can share a minimal sample IaC that reproduces, this often gets fixed in one PR.
+
+        **Not a bug?**
+        - Security vulnerability → do NOT open a public issue. Use [Private security advisories](https://github.com/alphacrack/iac-scanner/security/advisories/new). See [SECURITY.md](https://github.com/alphacrack/iac-scanner/blob/main/SECURITY.md).
+        - Usage question → [Discussions](https://github.com/alphacrack/iac-scanner/discussions) is a better fit.
+        - Feature request → use the "Feature request" template.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched [existing issues](https://github.com/alphacrack/iac-scanner/issues?q=is%3Aissue) and this is not a duplicate.
+          required: true
+        - label: This is a defect, not a security vulnerability (those go via [Private advisories](https://github.com/alphacrack/iac-scanner/security/advisories/new)).
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: iac-scanner version
+      description: "Output of `iac-scan --version` (or the git commit if running from source)."
+      placeholder: "e.g. 0.5.0, or main@a202468"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: iac-type
+    attributes:
+      label: IaC type
+      description: Which input format triggered the bug?
+      options:
+        - Terraform
+        - AWS CDK
+        - Both / neither / not applicable
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: LLM provider
+      description: "Auto-detected or explicit? If `--scan-only`, choose `none`."
+      options:
+        - openai
+        - anthropic
+        - github (GitHub Models)
+        - ollama
+        - none (scan-only)
+        - other / auto
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Exact command and, if possible, the input IaC (or a minimal reduction of it).
+      placeholder: |
+        1. Save the following as `main.tf` (or attach it):
+           ```hcl
+           resource "aws_s3_bucket" "b" { bucket = "..." }
+           ```
+        2. Run: `iac-scan scan ./ -o ./out --provider github`
+        3. Observe: ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you thought would happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead. Include full error output / stack trace if there was one.
+      render: shell
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, and anything else relevant (Docker, WSL, CI runner, etc.). Redact any keys.
+      value: |
+        - OS:
+        - Python:
+        - Install method (pip / editable / packaged):
+        - Extras (`[local]`, `[mcp]`, `[rules]`, `[all]`):
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, cache state, workaround you've tried, etc.

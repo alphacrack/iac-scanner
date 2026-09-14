@@ -22,8 +22,10 @@ jobs:
     name: SAST (bandit, ruff-S)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -38,8 +40,10 @@ jobs:
     name: Dependency audit (pip-audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -56,12 +60,12 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so gitleaks can scan all commits, not just the HEAD
           fetch-depth: 0
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # No GITLEAKS_LICENSE env = free for public repos, rate-limited for private.
@@ -74,8 +78,10 @@ jobs:
     name: Self-scan (iac-scan on samples)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # setuptools-scm needs git history to derive the package version
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -83,7 +89,7 @@ jobs:
       - name: Scan-only self-check on Terraform samples
         run: iac-scan scan ./samples/tf -o ./self-out --scan-only
       - name: Upload self-scan report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: self-scan-report
           path: ./self-out/
