@@ -92,3 +92,33 @@ def test_cli_scan_missing_api_keys_for_ai_mode(tmp_path: Path, monkeypatch: pyte
     # Message should enumerate at least one remediation path
     assert "provider" in combined
     assert "--scan-only" in combined or "ollama" in combined or "openai" in combined
+
+
+@pytest.mark.smoke
+def test_cli_scan_only_tf_clean_reports_no_findings(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out-tf-clean"
+    result = CliRunner().invoke(
+        main,
+        ["scan", str(SAMPLES / "tf-clean"), "-o", str(out_dir), "--scan-only"],
+    )
+    assert result.exit_code == 0, result.output
+    report = out_dir / "scan-report.json"
+    assert report.exists()
+    data = json.loads(report.read_text())
+    assert data["iac_type"] == "terraform"
+    assert data["findings"] == []
+
+
+@pytest.mark.smoke
+def test_cli_scan_only_cdk_clean_reports_no_findings(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out-cdk-clean"
+    result = CliRunner().invoke(
+        main,
+        ["scan", str(SAMPLES / "cdk-clean"), "-o", str(out_dir), "--scan-only"],
+    )
+    assert result.exit_code == 0, result.output
+    report = out_dir / "scan-report.json"
+    assert report.exists()
+    data = json.loads(report.read_text())
+    assert data["iac_type"] == "cdk"
+    assert data["findings"] == []
