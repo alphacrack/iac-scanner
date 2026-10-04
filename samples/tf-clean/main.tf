@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "example" {
   tags = {
     Name        = "My bucket"
     Environment = "dev"
-    ManagedBy = "terraform"
+    ManagedBy   = "terraform"
   }
 }
 resource "aws_s3_bucket_versioning" "example" {
