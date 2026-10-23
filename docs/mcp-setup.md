@@ -22,6 +22,9 @@ The help command prints:
 Usage: iac-scan-mcp [--help]
 
 Start the iac-scanner MCP server over stdio.
+
+Options:
+  -h, --help  Show this help message and exit.
 ```
 
 If your client cannot find `iac-scan-mcp`, use the command's absolute path from
