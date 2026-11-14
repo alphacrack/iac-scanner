@@ -50,28 +50,55 @@ jobs:
 
       # ---------- Provider-specific env ----------
       - name: Configure provider env
+        id: cfg
+        env:
+          PROVIDER: ${{ matrix.provider }}
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN_VALUE: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "IAC_PROVIDER=${{ matrix.provider }}" >> $GITHUB_ENV
-          case "${{ matrix.provider }}" in
+          echo "IAC_PROVIDER=$PROVIDER" >> "$GITHUB_ENV"
+          skip=false
+          case "$PROVIDER" in
             openai)
-              [ -n "${{ secrets.OPENAI_API_KEY }}" ] || { echo "::warning::OPENAI_API_KEY not set — skipping"; exit 0; }
-              echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+              if [ -n "$OPENAI_KEY" ]; then
+                echo "OPENAI_API_KEY=$OPENAI_KEY" >> "$GITHUB_ENV"
+              else
+                echo "::warning::OPENAI_API_KEY not set, skipping E2E for openai"
+                skip=true
+              fi
               ;;
             anthropic)
-              [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ] || { echo "::warning::ANTHROPIC_API_KEY not set — skipping"; exit 0; }
-              echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> $GITHUB_ENV
+              if [ -n "$ANTHROPIC_KEY" ]; then
+                echo "ANTHROPIC_API_KEY=$ANTHROPIC_KEY" >> "$GITHUB_ENV"
+              else
+                echo "::warning::ANTHROPIC_API_KEY not set, skipping E2E for anthropic"
+                skip=true
+              fi
               ;;
             github)
               # GITHUB_TOKEN is always available in Actions
-              echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+              echo "GITHUB_TOKEN=$GH_TOKEN_VALUE" >> "$GITHUB_ENV"
               ;;
             ollama)
-              echo "OLLAMA_HOST=http://localhost:11434" >> $GITHUB_ENV
+              echo "OLLAMA_HOST=http://localhost:11434" >> "$GITHUB_ENV"
               ;;
           esac
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
 
       - name: Run E2E tests
-        run: pytest tests/ -v -m e2e --tb=short
+        if: steps.cfg.outputs.skip != 'true'
+        run: |
+          # pytest exits 5 when no tests are collected (no @pytest.mark.e2e
+          # tests exist yet); treat that as a pass rather than a failure.
+          set +e
+          pytest tests/ -v -m e2e --tb=short
+          rc=$?
+          if [ "$rc" -eq 5 ]; then
+            echo "::notice::No e2e-marked tests collected (pytest exit 5), treating as pass"
+            exit 0
+          fi
+          exit "$rc"
 
       - name: Upload E2E artifacts
         if: always()
