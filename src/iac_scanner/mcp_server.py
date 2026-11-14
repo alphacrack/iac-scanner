@@ -37,6 +37,14 @@ from iac_scanner.orchestration.tasks import ANALYSIS_SYSTEM, ANALYSIS_USER, FIX_
 from iac_scanner.rules import is_available, run_rule_engine
 from iac_scanner.scanners._filters import InputTooLargeError
 
+_HELP = """Usage: iac-scan-mcp [--help]
+
+Start the iac-scanner MCP server over stdio.
+
+Options:
+  -h, --help  Show this help message and exit.
+"""
+
 
 def _import_mcp() -> Any:
     """Import the MCP SDK lazily so the rest of iac-scanner doesn't hard-depend on it."""
@@ -225,9 +233,18 @@ async def _serve() -> None:
         )
 
 
-def main() -> None:
+def main(args: list[str] | None = None) -> None:
     """Entry point for the `iac-scan-mcp` console script."""
     import asyncio
+
+    cli_args = sys.argv[1:] if args is None else args
+    if cli_args in (["-h"], ["--help"]):
+        print(_HELP, end="")
+        return
+    if cli_args:
+        print(f"iac-scan-mcp: unexpected argument: {cli_args[0]}", file=sys.stderr)
+        print("Run `iac-scan-mcp --help` for usage.", file=sys.stderr)
+        raise SystemExit(2)
 
     try:
         asyncio.run(_serve())
