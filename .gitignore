@@ -20,6 +20,10 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Terraform
+.terraform/
+.terraform.lock.hcl
+
 # Scanner output (local test runs)
 out/
 out-cdk/
